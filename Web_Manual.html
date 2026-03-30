@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart BSF Cage Manual</title>
+    <style>
+        :root { --primary: #2e7d32; --dark: #1b1b1b; --accent: #ffd600; --white: #f5f5f5; }
+        body { font-family: 'Segoe UI', sans-serif; line-height: 1.6; margin: 0; background: var(--white); color: var(--dark); }
+        header { background: var(--primary); color: white; padding: 2rem; text-align: center; }
+        .container { max-width: 1000px; margin: auto; padding: 20px; }
+        section { background: white; margin-bottom: 20px; padding: 25px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h2 { color: var(--primary); border-bottom: 2px solid var(--primary); padding-bottom: 5px; }
+        .label-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; }
+        .item { border-left: 4px solid var(--accent); padding-left: 15px; background: #fafafa; padding: 10px; }
+        .warning { background: #fff3e0; border-left: 5px solid #ff9800; padding: 15px; margin: 15px 0; }
+        .step-box { background: var(--dark); color: white; padding: 20px; border-radius: 8px; }
+        .step { margin-bottom: 10px; border-bottom: 1px solid #444; padding-bottom: 10px; }
+        .step span { color: var(--accent); font-weight: bold; margin-right: 10px; }
+        img { max-width: 100%; height: auto; border-radius: 5px; margin: 15px 0; }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Smart BSF Rearing Cage</h1>
+    <p>Operation & Technical Manual</p>
+</header>
+
+<div class="container">
+    <section id="description">
+        <h2>System Description</h2>
+        <p>This automated system is designed for high-efficiency Black Soldier Fly (BSF) cultivation. Using an ESP32 and Raspberry Pi 5, the cage monitors environmental parameters to optimize larvae production through predictive modeling.</p>
+    </section>
+
+    <section id="cage">
+        <h2>Rearing Cage & Components</h2>
+        <img src="cage.jpg" alt="BSF Rearing Cage Diagram">
+        <div class="label-grid">
+            <div class="item"><strong>DHT22 / SHT31:</strong> Monitors ambient Temperature and Humidity.</div>
+            <div class="item"><strong>BH1750:</strong> Measures Light Intensity (Lux) for mating stimulation.</div>
+            <div class="item"><strong>Active Low Relays:</strong> Controls 12V Heaters, Fans, and 5V Humidifiers. (Note: Logic is reversed—LOW is ON).</div>
+            <div class="item"><strong>DS18B20:</strong> Waterproof sensor for substrate temperature.</div>
+        </div>
+    </section>
+
+    <section id="solar">
+        <h2>Solar Power Setup</h2>
+        <div class="label-grid">
+            <div class="item"><strong>100W Solar Panel:</strong> Positioned for maximum PV intake.</div>
+            <div class="item"><strong>30A SCC (B2 Setting):</strong> Configured for 3s6p Lithium-ion battery protection.</div>
+            <div class="item"><strong>12V DC LED:</strong> Manual/Automated lighting for night-time checks.</div>
+        </div>
+        
+        <div class="warning">
+            <strong>Critical Safety Note:</strong> Always ensure the DC Breakers are accessible. The 12V 100Ah battery provides the primary buffer for 24-hour operations.
+        </div>
+    </section>
+
+    <section id="startup" class="step-box">
+        <h2>System Startup Procedure</h2>
+        <div class="step"><span>STEP 1:</span> Connect the <strong>Battery</strong> to the Charge Controller first. (Wait for display to activate).</div>
+        <div class="step"><span>STEP 2:</span> Connect the <strong>Solar Panel</strong> to the Charge Controller.</div>
+        <div class="step"><span>STEP 3:</span> Switch on the <strong>Load Breaker</strong> to power the ESP32 and Sensors.</div>
+    </section>
+</div>
+
+</body>
+</html>
