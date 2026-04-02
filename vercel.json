@@ -1,0 +1,49 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "app.py",
+      "use": "@vercel/python"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "app.py"
+    }
+  ]
+}
+```
+6. Press **Ctrl+S** to save
+
+---
+
+**Option 2 — Using Notepad (Windows)**
+
+1. Open **Notepad**
+2. Paste the JSON code above
+3. Click **File → Save As**
+4. Navigate to your project folder
+5. Set **"Save as type"** to **All Files**
+6. Name it exactly: `vercel.json`
+7. Click Save
+
+---
+
+**Option 3 — Directly on GitHub**
+
+1. Go to your GitHub repo
+2. Click **"Add file"** → **"Create new file"**
+3. Name it `vercel.json`
+4. Paste the code
+5. Click **"Commit changes"**
+
+---
+
+Do the same steps for `requirements.txt` — just paste this inside it:
+```
+flask
+flask-login
+pyserial
+numpy
+scikit-learn
