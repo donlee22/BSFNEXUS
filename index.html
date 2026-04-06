@@ -255,7 +255,7 @@ canvas{max-height:220px}
 .dlog-cage-badge.larvae{color:var(--larvae);border-color:var(--larvae);background:rgba(0,230,118,.07)}
 .dlog-cage-badge.pupa{color:var(--pupa);border-color:var(--pupa);background:rgba(64,196,255,.07)}
 .dlog-cage-badge.adult{color:var(--adult);border-color:var(--adult);background:rgba(255,171,64,.07)}
-@media(max-width:700px){#dlog-summary{grid-template-columns:1fr!important}}
+@media(max-width:700px){ #dlog-summary{grid-template-columns:1fr!important}}
 </style>
 </head>
 <body>
@@ -582,7 +582,7 @@ canvas{max-height:220px}
         <table>
           <thead><tr>
             <th>Cycle</th><th>Actual</th><th>Model</th><th>Best</th>
-            <th>Train R²</th><th>Test R²</th><th>MAE (g)</th><th>RMSE (g)</th><th>MAPE</th><th>Predicted</th><th>Epochs</th>
+            <th>Train R²</th><th style="display:none">Test R²</th><th>MAE (g)</th><th>RMSE (g)</th><th>MAPE</th><th>Predicted</th><th>Epochs</th>
           </tr></thead>
           <tbody id="compare-tbody">
             <tr><td colspan="11"><div class="empty-state">
@@ -738,11 +738,15 @@ function stageIconHtml(stage, size = 13) {
 //  CONSTANTS
 // ══════════════════════════════════════════════════════
 const MODEL_COLORS = {LSTM:'#00e676', ANN:'#40c4ff', RandomForest:'#ffab40'};
-const MODEL_ICONS  = {LSTM:'LSTM', ANN:'ANN', RandomForest:'RF'};
+const MODEL_ICONS  = {LSTM:'Long Short-Term Memory (LSTM)', ANN:'Artificial Neural Network (ANN)', RandomForest:'Random Forest (RF)'};
 const MODEL_LUCIDE = {LSTM:'cpu', ANN:'network', RandomForest:'trees'};
 const MODEL_NAMES  = ['LSTM','ANN','RandomForest'];
 const LS_CYCLE_KEY = 'bsfnexus_cycle_cache';
 const LS_CYCLE_ID  = 'bsfnexus_cycle_id';
+
+// ── Global state ──
+let chartDailyPred = null;
+let currentCycleId = lsGetCycleId();
 
 // ══════════════════════════════════════════════════════
 //  LOCAL STORAGE HELPERS
@@ -921,8 +925,6 @@ function renderModelCards(allPreds, bestModel, container) {
 // ══════════════════════════════════════════════════════
 //  LOAD CYCLE
 // ══════════════════════════════════════════════════════
-let chartDailyPred = null;
-let currentCycleId = lsGetCycleId();
 
 async function loadCycle() {
   try {
@@ -1024,18 +1026,96 @@ async function loadCycle() {
         pointBackgroundColor: MODEL_COLORS[m]
       }));
       chartDailyPred = new Chart(document.getElementById('chart-daily-pred'), {
-        type: 'line',
-        data: { labels, datasets },
-        options: {
-          responsive: true,
-          plugins: { legend: { labels: { color: '#4a7060', font: { family: 'IBM Plex Mono', size: 10 } } } },
-          scales: {
-            x: { grid: { color: '#1c3326' }, ticks: { color: '#4a7060', font: { family: 'IBM Plex Mono', size: 10 } } },
-            y: { grid: { color: '#1c3326' }, ticks: { color: '#4a7060', font: { family: 'IBM Plex Mono', size: 10 } },
-                 title: { display: true, text: 'grams (g)', color: '#4a7060', font: { family: 'IBM Plex Mono' } } }
-          }
+  	type: 'line',
+ 	 data: {
+  	  labels,
+   	  datasets: MODEL_NAMES.map(m => ({
+   	   label: m,
+   	   data: sorted.map(entry => { const ap = entry.all_predictions || {}; return ap[m]?.predicted_g ?? null; }),
+   	   borderColor: MODEL_COLORS[m],
+           backgroundColor: 'transparent',
+	   borderWidth: 2,
+           tension: 0,
+           pointRadius: 5,
+           pointHoverRadius: 7,
+           pointBackgroundColor: '#ffffff',
+           pointBorderColor: MODEL_COLORS[m],
+           pointBorderWidth: 2,
+           fill: false,
+           spanGaps: true,
+         }))
+       },
+  options: {
+    responsive: true,
+    interaction: { mode: 'index', intersect: false },
+    plugins: {
+      legend: {
+        display: true,
+        position: 'top',
+        labels: {
+          color: 'var(--text)',
+          font: { family: 'IBM Plex Mono', size: 11 },
+          usePointStyle: true,
+          pointStyle: 'circle',
+          padding: 24,
         }
-      });
+      },
+      tooltip: {
+        backgroundColor: '#111c17',
+        borderColor: '#1c3326',
+        borderWidth: 1,
+        titleColor: '#e0f2e9',
+        bodyColor: '#4a7060',
+        titleFont: { family: 'IBM Plex Mono', size: 11 },
+        bodyFont:  { family: 'IBM Plex Mono', size: 11 },
+        callbacks: {
+          label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.y !== null ? ctx.parsed.y + 'g' : '—'}`
+        }
+      }
+    },
+    scales: {
+      x: {
+        grid: { color: 'rgba(255,255,255,0.05)' },
+        border: { display: false },
+        ticks: { color: 'var(--muted)', font: { family: 'IBM Plex Mono', size: 10 } },
+      },
+      y: {
+        grid: { color: 'rgba(255,255,255,0.05)' },
+        border: { display: false },
+        ticks: {
+          color: 'var(--muted)',
+          font: { family: 'IBM Plex Mono', size: 10 },
+          callback: val => val + 'g'
+        },
+        beginAtZero: true,
+        suggestedMax: Math.max(...sorted.flatMap(entry => {
+          const ap = entry.all_predictions || {};
+          return MODEL_NAMES.map(m => ap[m]?.predicted_g ?? 0);
+        })) * 1.2,
+      }
+    },
+    layout: { padding: { right: 20, top: 16 } }
+  },
+  plugins: [{
+    id: 'axisArrows',
+    afterDraw(chart) {
+      const ctx = chart.ctx;
+      const { left, right, top, bottom } = chart.chartArea;
+      ctx.save();
+      ctx.strokeStyle = '#4a7060';
+      ctx.fillStyle   = '#4a7060';
+      ctx.lineWidth   = 1.5;
+      // X →
+      ctx.beginPath(); ctx.moveTo(left, bottom); ctx.lineTo(right + 14, bottom); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(right+14, bottom); ctx.lineTo(right+7, bottom-5); ctx.lineTo(right+7, bottom+5); ctx.closePath(); ctx.fill();
+      // Y ↑
+      ctx.beginPath(); ctx.moveTo(left, bottom); ctx.lineTo(left, top - 14); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(left, top-14); ctx.lineTo(left-5, top-7); ctx.lineTo(left+5, top-7); ctx.closePath(); ctx.fill();
+      ctx.restore();
+    }
+  }]
+});
+
     }
   } catch(e) { console.error('loadCycle error:', e); }
 }
@@ -1309,12 +1389,12 @@ async function loadComparison() {
         <div style="font-family:'IBM Plex Mono',monospace;font-size:.72rem;color:${bestColor};margin-bottom:10px;font-weight:700;display:flex;align-items:center;gap:5px">
           <i data-lucide="${lIcon}" style="width:13px;height:13px"></i> ${MODEL_ICONS[best] || best} <span style="color:var(--muted);font-weight:400">← best</span>
         </div>
-        <div style="font-size:1.4rem;font-weight:800;color:${bestColor};font-family:'IBM Plex Mono',monospace">${bm.test_r2 ?? '—'}</div>
-        <div style="font-family:'IBM Plex Mono',monospace;font-size:.65rem;color:var(--muted);margin-bottom:8px">Test R²</div>
+        <div style="font-size:1.4rem;font-weight:800;color:${bestColor};font-family:'IBM Plex Mono',monospace">${bm.train_r2 ?? '—'}</div>
+	<div style="font-family:'IBM Plex Mono',monospace;font-size:.65rem;color:var(--muted);margin-bottom:8px">Train R²</div>
         <div style="font-family:'IBM Plex Mono',monospace;font-size:.72rem;line-height:1.8">
-          MAE : <span style="color:${bestColor}">${bm.mae_g != null ? bm.mae_g + 'g' : '—'}</span><br>
-          RMSE: <span style="color:${bestColor}">${bm.rmse_g != null ? bm.rmse_g + 'g' : '—'}</span><br>
-          MAPE: <span style="color:${bestColor}">${mapeStr}</span><br>
+          MAE : <span style="color:${bestColor}">${bm.mae_g_train != null ? bm.mae_g_train + 'g' : '—'}</span><br>
+	RMSE: <span style="color:${bestColor}">${bm.rmse_g_train != null ? bm.rmse_g_train + 'g' : '—'}</span><br>
+	MAPE: <span style="color:${bestColor}">${bm.mape_train != null ? bm.mape_train + '%' : '—'}</span><br>
           Actual: <span style="color:var(--text)">${c.actual_g != null ? c.actual_g + 'g' : 'In progress'}</span><br>
           Predicted: <span style="color:${bestColor}">${bm.predicted_g != null ? bm.predicted_g + 'g' : '—'}</span>
         </div>
@@ -1328,12 +1408,12 @@ async function loadComparison() {
     const models = c.models || {}, best = c.best_model || '';
     MODEL_NAMES.forEach((mname, mi) => {
       const m = models[mname] || {}, isBest = mname === best, color = MODEL_COLORS[mname];
-      const mapeStr = m.mape != null ? m.mape + '%' : '—';
+      const mapeStr = m.mape_train != null ? m.mape_train + '%' : '—';
       const cycleCell = mi === 0
         ? `<td class="td-day" rowspan="3" style="vertical-align:middle;border-right:1px solid var(--border)">Cycle ${c.cycle}${c._source === 'current' ? ' <span style="font-size:.6rem;color:var(--pupa)">(live)</span>' : ''}<br><span style="font-size:.65rem;color:var(--muted)">${c.total_readings || '—'} readings</span></td>
            <td class="td-actual" rowspan="3" style="vertical-align:middle;border-right:1px solid var(--border)">${c.actual_g != null ? c.actual_g + 'g' : 'In progress'}</td>`
         : '';
-      const r2c = m.test_r2 != null ? (m.test_r2 >= 0.85 ? 'var(--larvae)' : m.test_r2 >= 0.7 ? 'var(--warn)' : 'var(--danger)') : 'var(--muted)';
+      const r2c = m.train_r2 != null ? (m.train_r2 >= 0.85 ? 'var(--larvae)' : m.train_r2 >= 0.7 ? 'var(--warn)' : 'var(--danger)') : 'var(--muted)';
       const bestBadge = isBest
         ? `<span style="background:${color}22;color:${color};border:1px solid ${color};font-size:.58rem;padding:2px 7px;border-radius:100px;font-family:'IBM Plex Mono',monospace;display:inline-flex;align-items:center;gap:4px"><i data-lucide="trophy" style="width:10px;height:10px"></i> BEST</span>`
         : `<span style="color:var(--muted2);font-size:.65rem;font-family:'IBM Plex Mono',monospace">—</span>`;
@@ -1343,11 +1423,11 @@ async function loadComparison() {
             <i data-lucide="${MODEL_LUCIDE[mname]}" style="width:13px;height:13px"></i> ${mname}
           </td>
           <td>${bestBadge}</td>
-          <td style="font-family:'IBM Plex Mono',monospace;font-size:.75rem;color:var(--muted)">${m.train_r2 ?? '—'}</td>
-          <td style="font-family:'IBM Plex Mono',monospace;font-size:.75rem;color:${r2c};font-weight:700">${m.test_r2 ?? '—'}</td>
-          <td style="font-family:'IBM Plex Mono',monospace;font-size:.75rem">${m.mae_g != null ? m.mae_g : '—'}</td>
-          <td style="font-family:'IBM Plex Mono',monospace;font-size:.75rem">${m.rmse_g != null ? m.rmse_g : '—'}</td>
-          <td style="font-family:'IBM Plex Mono',monospace;font-size:.75rem">${mapeStr}</td>
+          <td style="font-family:'IBM Plex Mono',monospace;font-size:.75rem;color:${r2c};font-weight:700">${m.train_r2 ?? '—'}</td>
+	  <td style="display:none">${m.test_r2 ?? '—'}</td>
+	  <td style="font-family:'IBM Plex Mono',monospace;font-size:.75rem">${m.mae_g_train != null ? m.mae_g_train : '—'}</td>
+	  <td style="font-family:'IBM Plex Mono',monospace;font-size:.75rem">${m.rmse_g_train != null ? m.rmse_g_train : '—'}</td>
+	  <td style="font-family:'IBM Plex Mono',monospace;font-size:.75rem">${m.mape_train != null ? m.mape_train + '%' : '—'}</td>
           <td class="td-pred">${m.predicted_g != null ? m.predicted_g + 'g' : '—'}</td>
           <td style="font-family:'IBM Plex Mono',monospace;font-size:.75rem;color:var(--muted)">${m.epochs != null ? m.epochs : '—'}</td>
         </tr>`;
