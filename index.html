@@ -282,36 +282,18 @@ canvas{max-height:220px}
 </div>
 
 <script>
-function handleLogout() {
-    // 1. Tell your Raspberry Pi (via ngrok) to log out
-    // Replace the URL below with your actual ngrok logout link
-    fetch(" https://dropbox-overprice-amiable.ngrok-free.dev/logout");
+async function handleLogout() {
+    try {
+        // Sabihan ang Pi na mag-logout
+        await fetch("https://dropbox-overprice-amiable.ngrok-free.dev/logout", { mode: 'no-cors' });
+    } catch(e) { console.log("Logout signal sent to Pi"); }
 
-    // 2. Clear local data so the user is "logged out" in the browser
     localStorage.clear();
     sessionStorage.clear();
-
-    // 3. Redirect the user back to your Vercel home page
-    window.location.href = "/"; 
+    window.location.href = "https://bsfnexus.vercel.app/"; 
 }
 </script>
-      <button class="theme-toggle" id="theme-toggle-btn" onclick="toggleTheme()" title="Toggle light/dark theme">
-        <i data-lucide="sun" id="theme-icon" style="width:16px;height:16px"></i>
-      </button>
-      <div class="status-chip"><div class="led" id="led"></div><span id="conn-label">Searching…</span></div>
-      <div style="position:relative">
-        <div class="cycle-chip" id="cycle-chip" onclick="toggleCycleMenu(event)" style="cursor:pointer;display:flex;align-items:center;gap:6px">
-          <i data-lucide="refresh-cw" style="width:12px;height:12px"></i>
-          Cycle — <i data-lucide="chevron-down" style="width:12px;height:12px"></i>
-        </div>
-        <div id="cycle-menu" style="display:none;position:absolute;top:calc(100% + 8px);right:0;background:var(--card);border:1px solid var(--border2);border-radius:10px;padding:6px;z-index:999;min-width:180px;box-shadow:0 8px 32px rgba(0,0,0,.3);">
-          <div onclick="confirmResetCycle()" style="padding:9px 14px;border-radius:7px;cursor:pointer;font-family:'IBM Plex Mono',monospace;font-size:.72rem;color:#ff5252;display:flex;align-items:center;gap:7px" onmouseover="this.style.background='rgba(255,82,82,.1)'" onmouseout="this.style.background='transparent'">
-            <i data-lucide="rotate-ccw" style="width:13px;height:13px"></i> Reset to Cycle 1
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
+
 </header>
 
 <div class="wrap z1">
@@ -881,7 +863,7 @@ let latestSensors = {};
 
 async function pollSensors() {
   try {
-    const r = await fetch('/api/sensors');
+    const r = await fetch("https://dropbox-overprice-amiable.ngrok-free.dev/api/sensors");
     const j = await r.json();
     const s = j.sensors, sr = j.serial;
     latestSensors = s;
@@ -960,7 +942,7 @@ function renderModelCards(allPreds, bestModel, container) {
 // ══════════════════════════════════════════════════════
 async function loadCycle() {
   try {
-    const r = await fetch(${NGROK_URL}/api/cycle');
+    const r = await fetch("https://dropbox-overprice-amiable.ngrok-free.dev/api/cycle");
     const d = await r.json();
     currentCycleId = d.current_cycle || 1;
     lsSaveCycleId(currentCycleId);
@@ -1133,6 +1115,7 @@ function deriveLocalPrediction(days) {
 // ══════════════════════════════════════════════════════
 //  SUBMIT DAY
 // ══════════════════════════════════════════════════════
+const NGROK_URL = "https://dropbox-overprice-amiable.ngrok-free.dev";
 async function submitDay() {
   const day  = parseInt(document.getElementById('d-day').value);
   const temp = parseFloat(document.getElementById('d-temp').value);
@@ -1174,6 +1157,8 @@ async function submitDay() {
 // ══════════════════════════════════════════════════════
 //  DELETE DAY
 // ══════════════════════════════════════════════════════
+const NGROK_URL = "https://dropbox-overprice-amiable.ngrok-free.dev";
+
 async function deleteDay(day) {
   if (!confirm('Delete Day ' + day + '?')) return;
   lsDeleteDay(currentCycleId, day);
@@ -1206,6 +1191,8 @@ async function autoFillDay() {
 // ══════════════════════════════════════════════════════
 //  FINISH CYCLE
 // ══════════════════════════════════════════════════════
+const NGROK_URL = "https://dropbox-overprice-amiable.ngrok-free.dev";
+
 async function finishCycle() {
   const v = parseFloat(document.getElementById('actual-yield').value);
   if (isNaN(v) || v <= 0) { toast('Enter a valid actual yield.', 'err'); return; }
@@ -1225,6 +1212,8 @@ async function finishCycle() {
 // ══════════════════════════════════════════════════════
 //  DELETE CYCLE
 // ══════════════════════════════════════════════════════
+const NGROK_URL = "https://dropbox-overprice-amiable.ngrok-free.dev";
+
 async function deleteCycle(id) {
   if (!confirm('Delete Cycle ' + id + '? This cannot be undone.')) return;
   lsClearCycle(id);
@@ -1241,6 +1230,8 @@ async function deleteCycle(id) {
 // ══════════════════════════════════════════════════════
 //  HISTORY
 // ══════════════════════════════════════════════════════
+const NGROK_URL = "https://dropbox-overprice-amiable.ngrok-free.dev";
+
 async function loadHistory() {
   try {
     const r = await fetch('/api/cycles/history');
@@ -1333,6 +1324,8 @@ async function loadHistory() {
 //  AI MODEL COMPARISON
 // ══════════════════════════════════════════════════════
 let chartR2 = null, chartMae = null, chartYieldCompare = null, chartRmse = null, chartMape = null;
+
+const NGROK_URL = "https://dropbox-overprice-amiable.ngrok-free.dev";
 
 async function loadComparison() {
   let trainedCycles = [], historyCycles = [];
@@ -1696,6 +1689,8 @@ document.addEventListener('click', () => {
   if (m) m.style.display = 'none';
 });
 
+const NGROK_URL = "https://dropbox-overprice-amiable.ngrok-free.dev";
+
 async function confirmResetCycle() {
   document.getElementById('cycle-menu').style.display = 'none';
   if (!confirm('Reset to Cycle 1? All current daily data will be cleared!')) return;
@@ -1710,7 +1705,7 @@ async function confirmResetCycle() {
 }
 
 // ── ROUTE ALL API CALLS THROUGH NGROK ──
-const API_BASE = "https://dropbox-overprice-amiable.ngrok-free.app";
+const API_BASE = "https://dropbox-overprice-amiable.ngrok-free.dev";
 const _origFetch = window.fetch.bind(window);
 window.fetch = function(url, opts = {}) {
   if (typeof url === 'string' && url.startsWith('/api')) {
@@ -1738,7 +1733,7 @@ function _boot() {
 </body>
 
 <script>
-const NGROK_URL = 'https://dropbox-overprice-amiable.ngrok-free.dev';
+const NGROK_URL = "https://dropbox-overprice-amiable.ngrok-free.dev";
 
 // 1. UPDATE MO LAHAT NG FETCH CALLS MO GAYA NITO:
 async function loadCycle() {
@@ -1758,22 +1753,27 @@ async function loadCycle() {
 }
 
 // 2. UPDATE MO RIN ANG SENSORS (BH1750, Temp, Hum)
+const NGROK_URL = "https://dropbox-overprice-amiable.ngrok-free.dev";
+
 async function loadRealtimeData() {
     try {
-        const response = await fetch(`${NGROK_URL}/api/sensors`);
-        const data = await response.json();
+        const res = await fetch(`${NGROK_URL}/api/sensors`);
+        if (!res.ok) throw new Error("Pi offline");
+        const data = await res.json();
         
-        // I-update ang mga values sa dashboard (Example IDs lang ito, check mo sa HTML mo)
-        if(document.getElementById('l-temp')) document.getElementById('l-temp').innerText = data.temp;
-        if(document.getElementById('l-hum')) document.getElementById('l-hum').innerText = data.hum;
-        // BH1750 Lux
-        if(document.getElementById('p-temp')) document.getElementById('p-temp').innerText = data.lux;
+        // Pag-update sa UI (Ito yung mga IDs sa HTML mo)
+        document.getElementById('l-temp').innerText = data.temp;
+        document.getElementById('l-hum').innerText = data.hum;
+        document.getElementById('p-temp').innerText = data.lux; // O kung ano mang ID yan
         
-    } catch (error) {
-        console.log("Sensor fetch error. Is ngrok running?");
+        document.getElementById('conn-label').innerText = "Connected to Cage";
+        document.getElementById('led').classList.add('on');
+    } catch (err) {
+        document.getElementById('conn-label').innerText = "Disconnected";
+        document.getElementById('led').classList.remove('on');
+        console.error("Sensor fetch error:", err);
     }
 }
-
 // 3. FIX SA LOGOUT BUTTON PARA HINDI MAG-404
 document.getElementById('btn-logout').addEventListener('click', function(e) {
     e.preventDefault(); // Pigilan yung default 404 behavior
