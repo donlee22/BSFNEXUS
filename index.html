@@ -75,10 +75,11 @@ header{position:sticky;top:0;z-index:200;background:var(--header-bg);backdrop-fi
 .cseg{display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-size:.65rem;font-weight:700;transition:flex .4s ease;overflow:hidden;position:relative}
 .cseg span{display:flex;align-items:center;gap:5px;white-space:nowrap;padding:0 6px}
 .cseg .icon-seg{width:12px;height:12px;stroke:currentColor;flex-shrink:0}
+/* Proportional widths: Egg=4, Larvae=20, Pupa=14, Adult=7 → total=45 */
 .cseg-egg{background:#132e22;color:#5ecf95;flex:4}
-.cseg-larv{background:#0e2a1a;color:var(--larvae);flex:14}
+.cseg-larv{background:#0e2a1a;color:var(--larvae);flex:20}
 .cseg-pupa{background:#0e2034;color:var(--pupa);flex:14}
-.cseg-adlt{background:#2e1e08;color:var(--adult);flex:8}
+.cseg-adlt{background:#2e1e08;color:var(--adult);flex:7}
 [data-theme="light"] .cseg-egg{background:#d4edda;color:#00a84f}
 [data-theme="light"] .cseg-larv{background:#c8e6c9;color:#005f2a}
 [data-theme="light"] .cseg-pupa{background:#bbdefb;color:#0077b6}
@@ -170,14 +171,14 @@ canvas{max-height:220px}
 .prog-track{height:6px;background:var(--surface);border-radius:10px;overflow:hidden;margin-bottom:10px}
 .prog-fill{height:100%;background:linear-gradient(90deg,var(--larvae),#00b248);border-radius:10px;transition:width .5s ease}
 
-/* Stage mini-bar */
+/* Stage mini-bar — proportional: Egg=4, Larvae=20, Pupa=14, Adult=7 */
 .stage-mini-bar{display:flex;border-radius:6px;overflow:hidden;height:22px;border:1px solid var(--border2);margin-top:8px}
 .smb-seg{display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-size:.58rem;font-weight:700;position:relative;overflow:hidden;transition:all .3s;gap:4px}
 .smb-seg .icon-smb{width:11px;height:11px;stroke:currentColor;flex-shrink:0}
 .smb-egg{background:#132e22;color:#5ecf95;flex:4}
-.smb-larv{background:#0e2a1a;color:var(--larvae);flex:14}
+.smb-larv{background:#0e2a1a;color:var(--larvae);flex:20}
 .smb-pupa{background:#0e2034;color:var(--pupa);flex:14}
-.smb-adlt{background:#2e1e08;color:var(--adult);flex:8}
+.smb-adlt{background:#2e1e08;color:var(--adult);flex:7}
 .smb-seg.done{opacity:.5}
 .smb-seg.active-stage{outline:2px solid currentColor;outline-offset:-2px}
 [data-theme="light"] .smb-egg{background:#d4edda;color:#00a84f}
@@ -318,23 +319,23 @@ canvas{max-height:220px}
   <div class="panel active" id="panel-realtime">
     <div class="cycle-wrap">
       <div class="cycle-top">
-        <div class="cycle-title">BSF Life Cycle — 40-Day Overview</div>
+        <div class="cycle-title">BSF Life Cycle — 45-Day Overview</div>
         <div class="day-input-row">
           <label>Current Day:</label>
-          <input class="day-input" type="number" id="current-day" min="1" max="40" value="1" oninput="updateCycleHighlight(this.value)"/>
+          <input class="day-input" type="number" id="current-day" min="1" max="45" value="1" oninput="updateCycleHighlight(this.value)"/>
         </div>
       </div>
       <div class="cycle-bar">
         <div class="cseg cseg-egg"  id="seg-egg"><span><i data-lucide="egg" class="icon-seg"></i>EGG (1–4)</span></div>
-        <div class="cseg cseg-larv" id="seg-larv"><span><i data-lucide="worm" class="icon-seg"></i>LARVAE (5–18)</span></div>
-        <div class="cseg cseg-pupa" id="seg-pupae"><span><i data-lucide="shell" class="icon-seg"></i>PUPAE (19–32)</span></div>
-        <div class="cseg cseg-adlt" id="seg-adlt"><span><i data-lucide="bug" class="icon-seg"></i>ADULT (33–40)</span></div>
+        <div class="cseg cseg-larv" id="seg-larv"><span><i data-lucide="worm" class="icon-seg"></i>LARVAE (5–24)</span></div>
+        <div class="cseg cseg-pupa" id="seg-pupae"><span><i data-lucide="shell" class="icon-seg"></i>PUPAE (25–38)</span></div>
+        <div class="cseg cseg-adlt" id="seg-adlt"><span><i data-lucide="bug" class="icon-seg"></i>ADULT (39–45)</span></div>
       </div>
       <div class="cycle-legend">
         <div class="cl-item"><div class="cl-dot" style="background:#132e22"></div>Egg — Days 1–4</div>
-        <div class="cl-item"><div class="cl-dot" style="background:var(--larvae)"></div>Larvae — Days 5–18</div>
-        <div class="cl-item"><div class="cl-dot" style="background:var(--pupa)"></div>Pupae — Days 19–32</div>
-        <div class="cl-item"><div class="cl-dot" style="background:var(--adult)"></div>Adult — Days 33–40</div>
+        <div class="cl-item"><div class="cl-dot" style="background:var(--larvae)"></div>Larvae — Days 5–24</div>
+        <div class="cl-item"><div class="cl-dot" style="background:var(--pupa)"></div>Pupae — Days 25–38</div>
+        <div class="cl-item"><div class="cl-dot" style="background:var(--adult)"></div>Adult — Days 39–45</div>
       </div>
     </div>
     <div class="sh">
@@ -349,7 +350,7 @@ canvas{max-height:220px}
         <div class="scard-glow"></div>
         <div class="scard-head">
           <div class="scard-name"><i data-lucide="worm" class="icon-card"></i>Larvae</div>
-          <div class="scard-days">Days 5–18</div>
+          <div class="scard-days">Days 5–24</div>
         </div>
         <div class="sensors">
           <div class="sbox">
@@ -373,7 +374,7 @@ canvas{max-height:220px}
         <div class="scard-glow"></div>
         <div class="scard-head">
           <div class="scard-name"><i data-lucide="shell" class="icon-card"></i>Pupae</div>
-          <div class="scard-days">Days 19–32</div>
+          <div class="scard-days">Days 25–38</div>
         </div>
         <div class="sensors">
           <div class="sbox">
@@ -397,7 +398,7 @@ canvas{max-height:220px}
         <div class="scard-glow"></div>
         <div class="scard-head">
           <div class="scard-name"><i data-lucide="bug" class="icon-card"></i>Adult</div>
-          <div class="scard-days">Days 33–40</div>
+          <div class="scard-days">Days 39–45</div>
         </div>
         <div class="sensors">
           <div class="sbox">
@@ -446,14 +447,14 @@ canvas{max-height:220px}
     <div class="prog-wrap" id="prog-wrap" style="display:none">
       <div class="prog-top">
         <span>Cycle Progress</span>
-        <span id="prog-label">Day 0 / 40</span>
+        <span id="prog-label">Day 0 / 45</span>
       </div>
       <div class="prog-track"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
       <div class="stage-mini-bar">
         <div class="smb-seg smb-egg"  id="smb-egg"><i data-lucide="egg" class="icon-smb"></i><span>Egg (1–4)</span></div>
-        <div class="smb-seg smb-larv" id="smb-larv"><i data-lucide="worm" class="icon-smb"></i><span>Larvae (5–18)</span></div>
-        <div class="smb-seg smb-pupa" id="smb-pupa"><i data-lucide="shell" class="icon-smb"></i><span>Pupae (19–32)</span></div>
-        <div class="smb-seg smb-adlt" id="smb-adlt"><i data-lucide="bug" class="icon-smb"></i><span>Adult (33–40)</span></div>
+        <div class="smb-seg smb-larv" id="smb-larv"><i data-lucide="worm" class="icon-smb"></i><span>Larvae (5–24)</span></div>
+        <div class="smb-seg smb-pupa" id="smb-pupa"><i data-lucide="shell" class="icon-smb"></i><span>Pupae (25–38)</span></div>
+        <div class="smb-seg smb-adlt" id="smb-adlt"><i data-lucide="bug" class="icon-smb"></i><span>Adult (39–45)</span></div>
       </div>
     </div>
 
@@ -465,12 +466,12 @@ canvas{max-height:220px}
           <i data-lucide="calendar-plus" class="icon-form"></i> Add / Update Day
         </div>
         <div class="fg">
-          <label>Day Number (1–40)</label>
-          <input type="number" id="d-day" min="1" max="40" placeholder="e.g. 1" oninput="onDayInput()"/>
+          <label>Day Number (1–45)</label>
+          <input type="number" id="d-day" min="1" max="45" placeholder="e.g. 1" oninput="onDayInput()"/>
         </div>
         <div class="stage-hint-box" id="stage-hint-box">
           <i data-lucide="info" class="icon-hint" id="stage-hint-lucide"></i>
-          <span id="stage-hint-text">Enter a day number to see the stage</span>
+          <span id="stage-hint-text">Enter a day number (1–45) to see the stage</span>
         </div>
         <div class="fg">
           <label>Average Temperature (°C)</label>
@@ -631,7 +632,7 @@ canvas{max-height:220px}
     </div>
   </div>
 
-  <!-- ══ TAB 4: DATA HISTORY ══ -->
+  <!-- ══ TAB 5: DATA HISTORY ══ -->
   <div class="panel" id="panel-datalog">
     <div class="sh">
       <div class="sh-left"><div class="sh-bar"></div><div class="sh-title">Sensor Data History</div></div>
@@ -698,19 +699,12 @@ canvas{max-height:220px}
 // ══════════════════════════════════════════════════════
 //  LUCIDE ICON HELPERS
 // ══════════════════════════════════════════════════════
+function renderIcons() { lucide.createIcons(); }
 
-/** Replace all <i data-lucide="..."> with SVG icons */
-function renderIcons() {
-  lucide.createIcons();
-}
-
-/** Return an SVG string for a given lucide icon name + optional attrs */
 function lucideIcon(name, attrs = {}) {
-  const size   = attrs.size || 14;
-  const color  = attrs.color || 'currentColor';
-  const cls    = attrs.class || '';
-  const style  = attrs.style || '';
-  // Build the element, render via lucide, then grab outerHTML
+  const size  = attrs.size || 14;
+  const cls   = attrs.class || '';
+  const style = attrs.style || '';
   const tmp = document.createElement('i');
   tmp.setAttribute('data-lucide', name);
   tmp.style.width  = size + 'px';
@@ -727,12 +721,8 @@ function lucideIcon(name, attrs = {}) {
   return html;
 }
 
-// Stage icon mapping → Lucide icon names
 const STAGE_LUCIDE = { egg: 'egg', larvae: 'worm', pupa: 'shell', adult: 'bug' };
-
-function stageIconHtml(stage, size = 13) {
-  return lucideIcon(STAGE_LUCIDE[stage] || 'circle', { size });
-}
+function stageIconHtml(stage, size = 13) { return lucideIcon(STAGE_LUCIDE[stage] || 'circle', { size }); }
 
 // ══════════════════════════════════════════════════════
 //  CONSTANTS
@@ -744,7 +734,6 @@ const MODEL_NAMES  = ['LSTM','ANN','RandomForest'];
 const LS_CYCLE_KEY = 'bsfnexus_cycle_cache';
 const LS_CYCLE_ID  = 'bsfnexus_cycle_id';
 
-// ── Global state ──
 let chartDailyPred = null;
 let currentCycleId = lsGetCycleId();
 
@@ -802,9 +791,9 @@ function tab(id, el) {
 // ══════════════════════════════════════════════════════
 let toastTimer;
 function toast(msg, type = 'ok') {
-  const t    = document.getElementById('toast');
-  const ico  = document.getElementById('toast-icon');
-  const txt  = document.getElementById('toast-text');
+  const t   = document.getElementById('toast');
+  const ico = document.getElementById('toast-icon');
+  const txt = document.getElementById('toast-text');
   const iconMap = { ok: 'check-circle', err: 'x-circle', info: 'info' };
   txt.textContent = msg;
   t.className = 'toast show ' + type;
@@ -814,10 +803,22 @@ function toast(msg, type = 'ok') {
 }
 
 // ══════════════════════════════════════════════════════
-//  STAGE HELPERS
+//  STAGE HELPERS — updated day boundaries
 // ══════════════════════════════════════════════════════
-function stageFromDay(d) { if (d <= 4) return 'egg'; if (d <= 18) return 'larvae'; if (d <= 32) return 'pupa'; return 'adult'; }
-function stageLabel(s)   { return {egg:'Egg (Day 1–4)',larvae:'Larvae (Day 5–18)',pupa:'Pupae (Day 19–32)',adult:'Adult (Day 33–40)'}[s]||s; }
+function stageFromDay(d) {
+  if (d <= 4)  return 'egg';
+  if (d <= 24) return 'larvae';
+  if (d <= 38) return 'pupa';
+  return 'adult';
+}
+function stageLabel(s) {
+  return {
+    egg:    'Egg (Day 1–4)',
+    larvae: 'Larvae (Day 5–24)',
+    pupa:   'Pupae (Day 25–38)',
+    adult:  'Adult (Day 39–45)'
+  }[s] || s;
+}
 
 // ══════════════════════════════════════════════════════
 //  CYCLE BAR (realtime tab)
@@ -825,10 +826,10 @@ function stageLabel(s)   { return {egg:'Egg (Day 1–4)',larvae:'Larvae (Day 5�
 function updateCycleHighlight(day) {
   day = parseInt(day) || 1;
   ['seg-egg','seg-larv','seg-pupa','seg-adlt'].forEach(s => document.getElementById(s).classList.remove('current'));
-  if (day <= 4)  document.getElementById('seg-egg').classList.add('current');
-  else if (day <= 18) document.getElementById('seg-larv').classList.add('current');
-  else if (day <= 32) document.getElementById('seg-pupa').classList.add('current');
-  else document.getElementById('seg-adlt').classList.add('current');
+  if (day <= 4)       document.getElementById('seg-egg').classList.add('current');
+  else if (day <= 24) document.getElementById('seg-larv').classList.add('current');
+  else if (day <= 38) document.getElementById('seg-pupa').classList.add('current');
+  else                document.getElementById('seg-adlt').classList.add('current');
 }
 updateCycleHighlight(1);
 
@@ -881,10 +882,10 @@ function onDayInput() {
   const hintText = document.getElementById('stage-hint-text');
   const feedGrp  = document.getElementById('d-feed-group');
   const luxGrp   = document.getElementById('d-lux-group');
-  if (!d || d < 1 || d > 40) {
+  if (!d || d < 1 || d > 45) {
     hintIcon.setAttribute('data-lucide', 'info');
     lucide.createIcons({ nodes: [hintIcon] });
-    hintText.textContent = 'Enter a day number (1–40) to see the stage';
+    hintText.textContent = 'Enter a day number (1–45) to see the stage';
     feedGrp.style.display = '';
     luxGrp.style.display  = 'none';
     return;
@@ -918,14 +919,12 @@ function renderModelCards(allPreds, bestModel, container) {
         ${isBest ? `<div class="model-pred-best-label" style="color:${color}"><i data-lucide="arrow-left" style="width:11px;height:11px"></i> best model</div>` : ''}
       </div>`;
   }).join('');
-  // Render any newly injected lucide icons
   container.querySelectorAll('i[data-lucide]').forEach(el => lucide.createIcons({ nodes: [el] }));
 }
 
 // ══════════════════════════════════════════════════════
 //  LOAD CYCLE
 // ══════════════════════════════════════════════════════
-
 async function loadCycle() {
   try {
     const r = await fetch('/api/cycle');
@@ -967,9 +966,9 @@ async function loadCycle() {
     if (days.length > 0) {
       pw.style.display = '';
       const maxDay = Math.max(...days.map(x => x.day || x.week || 1));
-      const pct = Math.min(100, Math.round((maxDay / 40) * 100));
+      const pct = Math.min(100, Math.round((maxDay / 45) * 100));
       document.getElementById('prog-fill').style.width = pct + '%';
-      document.getElementById('prog-label').textContent = 'Day ' + maxDay + ' / 40';
+      document.getElementById('prog-label').textContent = 'Day ' + maxDay + ' / 45';
       const curStage = stageFromDay(maxDay);
       ['smb-egg','smb-larv','smb-pupa','smb-adlt'].forEach(id => document.getElementById(id).classList.remove('active-stage'));
       const segMap = {egg:'smb-egg', larvae:'smb-larv', pupa:'smb-pupa', adult:'smb-adlt'};
@@ -1008,7 +1007,6 @@ async function loadCycle() {
         </tr>`;
       }).join('');
     }
-    // Render new row icons
     tbody.querySelectorAll('i[data-lucide]').forEach(el => lucide.createIcons({ nodes: [el] }));
 
     document.getElementById('finish-box').style.display = days.length >= 10 ? '' : 'none';
@@ -1017,105 +1015,68 @@ async function loadCycle() {
     if (days.length > 0) {
       const sorted = [...days].sort((a, b) => (a.day || a.week || 0) - (b.day || b.week || 0));
       const labels  = sorted.map(entry => 'Day ' + (entry.day || entry.week));
-      const datasets = MODEL_NAMES.map(m => ({
-        label: m,
-        data: sorted.map(entry => { const ap = entry.all_predictions || {}; return ap[m]?.predicted_g ?? entry.predicted_g ?? null; }),
-        borderColor: MODEL_COLORS[m],
-        backgroundColor: MODEL_COLORS[m] + '18',
-        fill: false, tension: .4, pointRadius: 4,
-        pointBackgroundColor: MODEL_COLORS[m]
-      }));
       chartDailyPred = new Chart(document.getElementById('chart-daily-pred'), {
-  	type: 'line',
- 	 data: {
-  	  labels,
-   	  datasets: MODEL_NAMES.map(m => ({
-   	   label: m,
-   	   data: sorted.map(entry => { const ap = entry.all_predictions || {}; return ap[m]?.predicted_g ?? null; }),
-   	   borderColor: MODEL_COLORS[m],
-           backgroundColor: 'transparent',
-	   borderWidth: 2,
-           tension: 0,
-           pointRadius: 5,
-           pointHoverRadius: 7,
-           pointBackgroundColor: '#ffffff',
-           pointBorderColor: MODEL_COLORS[m],
-           pointBorderWidth: 2,
-           fill: false,
-           spanGaps: true,
-         }))
-       },
-  options: {
-    responsive: true,
-    interaction: { mode: 'index', intersect: false },
-    plugins: {
-      legend: {
-        display: true,
-        position: 'top',
-        labels: {
-          color: 'var(--text)',
-          font: { family: 'IBM Plex Mono', size: 11 },
-          usePointStyle: true,
-          pointStyle: 'circle',
-          padding: 24,
-        }
-      },
-      tooltip: {
-        backgroundColor: '#111c17',
-        borderColor: '#1c3326',
-        borderWidth: 1,
-        titleColor: '#e0f2e9',
-        bodyColor: '#4a7060',
-        titleFont: { family: 'IBM Plex Mono', size: 11 },
-        bodyFont:  { family: 'IBM Plex Mono', size: 11 },
-        callbacks: {
-          label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.y !== null ? ctx.parsed.y + 'g' : '—'}`
-        }
-      }
-    },
-    scales: {
-      x: {
-        grid: { color: 'rgba(255,255,255,0.05)' },
-        border: { display: false },
-        ticks: { color: 'var(--muted)', font: { family: 'IBM Plex Mono', size: 10 } },
-      },
-      y: {
-        grid: { color: 'rgba(255,255,255,0.05)' },
-        border: { display: false },
-        ticks: {
-          color: 'var(--muted)',
-          font: { family: 'IBM Plex Mono', size: 10 },
-          callback: val => val + 'g'
+        type: 'line',
+        data: {
+          labels,
+          datasets: MODEL_NAMES.map(m => ({
+            label: m,
+            data: sorted.map(entry => { const ap = entry.all_predictions || {}; return ap[m]?.predicted_g ?? null; }),
+            borderColor: MODEL_COLORS[m],
+            backgroundColor: 'transparent',
+            borderWidth: 2,
+            tension: 0,
+            pointRadius: 5,
+            pointHoverRadius: 7,
+            pointBackgroundColor: '#ffffff',
+            pointBorderColor: MODEL_COLORS[m],
+            pointBorderWidth: 2,
+            fill: false,
+            spanGaps: true,
+          }))
         },
-        beginAtZero: true,
-        suggestedMax: Math.max(...sorted.flatMap(entry => {
-          const ap = entry.all_predictions || {};
-          return MODEL_NAMES.map(m => ap[m]?.predicted_g ?? 0);
-        })) * 1.2,
-      }
-    },
-    layout: { padding: { right: 20, top: 16 } }
-  },
-  plugins: [{
-    id: 'axisArrows',
-    afterDraw(chart) {
-      const ctx = chart.ctx;
-      const { left, right, top, bottom } = chart.chartArea;
-      ctx.save();
-      ctx.strokeStyle = '#4a7060';
-      ctx.fillStyle   = '#4a7060';
-      ctx.lineWidth   = 1.5;
-      // X →
-      ctx.beginPath(); ctx.moveTo(left, bottom); ctx.lineTo(right + 14, bottom); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(right+14, bottom); ctx.lineTo(right+7, bottom-5); ctx.lineTo(right+7, bottom+5); ctx.closePath(); ctx.fill();
-      // Y ↑
-      ctx.beginPath(); ctx.moveTo(left, bottom); ctx.lineTo(left, top - 14); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(left, top-14); ctx.lineTo(left-5, top-7); ctx.lineTo(left+5, top-7); ctx.closePath(); ctx.fill();
-      ctx.restore();
-    }
-  }]
-});
-
+        options: {
+          responsive: true,
+          interaction: { mode: 'index', intersect: false },
+          plugins: {
+            legend: {
+              display: true, position: 'top',
+              labels: { color: 'var(--text)', font: { family: 'IBM Plex Mono', size: 11 }, usePointStyle: true, pointStyle: 'circle', padding: 24 }
+            },
+            tooltip: {
+              backgroundColor: '#111c17', borderColor: '#1c3326', borderWidth: 1,
+              titleColor: '#e0f2e9', bodyColor: '#4a7060',
+              titleFont: { family: 'IBM Plex Mono', size: 11 },
+              bodyFont:  { family: 'IBM Plex Mono', size: 11 },
+              callbacks: { label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.y !== null ? ctx.parsed.y + 'g' : '—'}` }
+            }
+          },
+          scales: {
+            x: { grid: { color: 'rgba(255,255,255,0.05)' }, border: { display: false }, ticks: { color: 'var(--muted)', font: { family: 'IBM Plex Mono', size: 10 } } },
+            y: {
+              grid: { color: 'rgba(255,255,255,0.05)' }, border: { display: false },
+              ticks: { color: 'var(--muted)', font: { family: 'IBM Plex Mono', size: 10 }, callback: val => val + 'g' },
+              beginAtZero: true,
+              suggestedMax: Math.max(...sorted.flatMap(entry => { const ap = entry.all_predictions || {}; return MODEL_NAMES.map(m => ap[m]?.predicted_g ?? 0); })) * 1.2,
+            }
+          },
+          layout: { padding: { right: 20, top: 16 } }
+        },
+        plugins: [{
+          id: 'axisArrows',
+          afterDraw(chart) {
+            const ctx = chart.ctx;
+            const { left, right, top, bottom } = chart.chartArea;
+            ctx.save();
+            ctx.strokeStyle = '#4a7060'; ctx.fillStyle = '#4a7060'; ctx.lineWidth = 1.5;
+            ctx.beginPath(); ctx.moveTo(left, bottom); ctx.lineTo(right + 14, bottom); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(right+14, bottom); ctx.lineTo(right+7, bottom-5); ctx.lineTo(right+7, bottom+5); ctx.closePath(); ctx.fill();
+            ctx.beginPath(); ctx.moveTo(left, bottom); ctx.lineTo(left, top - 14); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(left, top-14); ctx.lineTo(left-5, top-7); ctx.lineTo(left+5, top-7); ctx.closePath(); ctx.fill();
+            ctx.restore();
+          }
+        }]
+      });
     }
   } catch(e) { console.error('loadCycle error:', e); }
 }
@@ -1145,7 +1106,7 @@ async function submitDay() {
   const hum  = parseFloat(document.getElementById('d-hum').value);
   const feed = document.getElementById('d-feed').value;
   const lux  = document.getElementById('d-lux').value;
-  if (!day || day < 1 || day > 40) { toast('Enter a valid day number (1–40).', 'err'); return; }
+  if (!day || day < 1 || day > 45) { toast('Enter a valid day number (1–45).', 'err'); return; }
   if (isNaN(temp) || isNaN(hum))   { toast('Please fill in Temperature and Humidity.', 'err'); return; }
   const body = { day, avg_temp: temp, avg_humidity: hum };
   if (feed) body.feed_g = parseFloat(feed);
@@ -1376,11 +1337,9 @@ async function loadComparison() {
     return;
   }
 
-  // Summary cards
   const cardsEl = document.getElementById('compare-cards');
   cardsEl.innerHTML = cycles.map(c => {
     const best = c.best_model || '—', bestColor = MODEL_COLORS[best] || 'var(--larvae)', models = c.models || {}, bm = models[best] || {};
-    const mapeStr = bm.mape != null ? bm.mape + '%' : '—';
     const isCurrent = c._source === 'current';
     const lIcon = MODEL_LUCIDE[best] || 'cpu';
     return `<div style="background:var(--card);border:1px solid ${bestColor};border-radius:12px;padding:16px;box-shadow:0 0 16px ${bestColor}22;position:relative">
@@ -1390,11 +1349,11 @@ async function loadComparison() {
           <i data-lucide="${lIcon}" style="width:13px;height:13px"></i> ${MODEL_ICONS[best] || best} <span style="color:var(--muted);font-weight:400">← best</span>
         </div>
         <div style="font-size:1.4rem;font-weight:800;color:${bestColor};font-family:'IBM Plex Mono',monospace">${bm.train_r2 ?? '—'}</div>
-	<div style="font-family:'IBM Plex Mono',monospace;font-size:.65rem;color:var(--muted);margin-bottom:8px">Train R²</div>
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:.65rem;color:var(--muted);margin-bottom:8px">Train R²</div>
         <div style="font-family:'IBM Plex Mono',monospace;font-size:.72rem;line-height:1.8">
           MAE : <span style="color:${bestColor}">${bm.mae_g_train != null ? bm.mae_g_train + 'g' : '—'}</span><br>
-	RMSE: <span style="color:${bestColor}">${bm.rmse_g_train != null ? bm.rmse_g_train + 'g' : '—'}</span><br>
-	MAPE: <span style="color:${bestColor}">${bm.mape_train != null ? bm.mape_train + '%' : '—'}</span><br>
+          RMSE: <span style="color:${bestColor}">${bm.rmse_g_train != null ? bm.rmse_g_train + 'g' : '—'}</span><br>
+          MAPE: <span style="color:${bestColor}">${bm.mape_train != null ? bm.mape_train + '%' : '—'}</span><br>
           Actual: <span style="color:var(--text)">${c.actual_g != null ? c.actual_g + 'g' : 'In progress'}</span><br>
           Predicted: <span style="color:${bestColor}">${bm.predicted_g != null ? bm.predicted_g + 'g' : '—'}</span>
         </div>
@@ -1402,13 +1361,11 @@ async function loadComparison() {
   }).join('');
   cardsEl.querySelectorAll('i[data-lucide]').forEach(n => lucide.createIcons({ nodes: [n] }));
 
-  // Table
   let tbodyHtml = '';
   cycles.forEach(c => {
     const models = c.models || {}, best = c.best_model || '';
     MODEL_NAMES.forEach((mname, mi) => {
       const m = models[mname] || {}, isBest = mname === best, color = MODEL_COLORS[mname];
-      const mapeStr = m.mape_train != null ? m.mape_train + '%' : '—';
       const cycleCell = mi === 0
         ? `<td class="td-day" rowspan="3" style="vertical-align:middle;border-right:1px solid var(--border)">Cycle ${c.cycle}${c._source === 'current' ? ' <span style="font-size:.6rem;color:var(--pupa)">(live)</span>' : ''}<br><span style="font-size:.65rem;color:var(--muted)">${c.total_readings || '—'} readings</span></td>
            <td class="td-actual" rowspan="3" style="vertical-align:middle;border-right:1px solid var(--border)">${c.actual_g != null ? c.actual_g + 'g' : 'In progress'}</td>`
@@ -1424,10 +1381,10 @@ async function loadComparison() {
           </td>
           <td>${bestBadge}</td>
           <td style="font-family:'IBM Plex Mono',monospace;font-size:.75rem;color:${r2c};font-weight:700">${m.train_r2 ?? '—'}</td>
-	  <td style="display:none">${m.test_r2 ?? '—'}</td>
-	  <td style="font-family:'IBM Plex Mono',monospace;font-size:.75rem">${m.mae_g_train != null ? m.mae_g_train : '—'}</td>
-	  <td style="font-family:'IBM Plex Mono',monospace;font-size:.75rem">${m.rmse_g_train != null ? m.rmse_g_train : '—'}</td>
-	  <td style="font-family:'IBM Plex Mono',monospace;font-size:.75rem">${m.mape_train != null ? m.mape_train + '%' : '—'}</td>
+          <td style="display:none">${m.test_r2 ?? '—'}</td>
+          <td style="font-family:'IBM Plex Mono',monospace;font-size:.75rem">${m.mae_g_train != null ? m.mae_g_train : '—'}</td>
+          <td style="font-family:'IBM Plex Mono',monospace;font-size:.75rem">${m.rmse_g_train != null ? m.rmse_g_train : '—'}</td>
+          <td style="font-family:'IBM Plex Mono',monospace;font-size:.75rem">${m.mape_train != null ? m.mape_train + '%' : '—'}</td>
           <td class="td-pred">${m.predicted_g != null ? m.predicted_g + 'g' : '—'}</td>
           <td style="font-family:'IBM Plex Mono',monospace;font-size:.75rem;color:var(--muted)">${m.epochs != null ? m.epochs : '—'}</td>
         </tr>`;
@@ -1437,7 +1394,6 @@ async function loadComparison() {
   tbodyEl.innerHTML = tbodyHtml || `<tr><td colspan="11"><div class="empty-state"><div class="empty-icon"><i data-lucide="bar-chart-2"></i></div>No data yet.</div></td></tr>`;
   tbodyEl.querySelectorAll('i[data-lucide]').forEach(n => lucide.createIcons({ nodes: [n] }));
 
-  // Charts
   const labels = cycles.map(c => `Cycle ${c.cycle}`);
   const chartOpts = (yLabel, max) => ({
     responsive: true,
@@ -1472,24 +1428,19 @@ async function loadComparison() {
 // ══════════════════════════════════════════════════════
 //  DATA HISTORY — sensor log every 2 minutes
 // ══════════════════════════════════════════════════════
-
 const LS_DLOG_KEY = 'bsfnexus_datalog';
-const DLOG_MAX    = 500;   // keep last 500 entries
-let   dlogFilter  = 'all'; // current cage filter
+const DLOG_MAX    = 500;
+let   dlogFilter  = 'all';
 
-// ── Thresholds (matching backend expectations) ──
 const THRESHOLDS = {
   larvae : { temp: { lo: 26, hi: 32 }, hum: { lo: 60, hi: 80 } },
   pupa   : { temp: { lo: 26, hi: 32 }, hum: { lo: 60, hi: 80 } },
   adult  : { temp: { lo: 26, hi: 32 }, hum: { lo: 60, hi: 80 }, lux: { lo: 300, hi: 1000 } }
 };
 
-/** Derive actuator states from sensor readings + thresholds */
 function deriveActuators(cage, temp, hum, lux) {
   const thr  = THRESHOLDS[cage] || THRESHOLDS.larvae;
   const acts = [];
-
-  // Temperature logic
   if (temp !== null && temp !== undefined) {
     if (temp > thr.temp.hi) {
       acts.push({ name: 'DC Fan',   state: 'alert', reason: 'Temp too HIGH (' + temp + '°C)' });
@@ -1505,129 +1456,76 @@ function deriveActuators(cage, temp, hum, lux) {
       acts.push({ name: 'Heater',   state: 'off',   reason: 'Normal' });
     }
   }
-
-  // Humidity logic
   if (hum !== null && hum !== undefined) {
-    if (hum < thr.hum.lo) {
-      acts.push({ name: 'Humidifier', state: 'alert', reason: 'Humidity too LOW (' + hum + '%)' });
-    } else if (hum > thr.hum.hi) {
-      acts.push({ name: 'Humidifier', state: 'warn',  reason: 'Humidity too HIGH (' + hum + '%)' });
-    } else {
-      acts.push({ name: 'Humidifier', state: 'off',   reason: 'Normal' });
-    }
+    if (hum < thr.hum.lo)       acts.push({ name: 'Humidifier', state: 'alert', reason: 'Humidity too LOW (' + hum + '%)' });
+    else if (hum > thr.hum.hi)  acts.push({ name: 'Humidifier', state: 'warn',  reason: 'Humidity too HIGH (' + hum + '%)' });
+    else                         acts.push({ name: 'Humidifier', state: 'off',   reason: 'Normal' });
   }
-
-  // Light logic (adult cage only)
   if (cage === 'adult' && lux !== null && lux !== undefined) {
-    if (lux < THRESHOLDS.adult.lux.lo) {
-      acts.push({ name: 'LED Bulb',   state: 'alert', reason: 'Light too LOW (' + lux + ' lx)' });
-    } else if (lux > THRESHOLDS.adult.lux.hi) {
-      acts.push({ name: 'LED Bulb',   state: 'warn',  reason: 'Light too HIGH (' + lux + ' lx)' });
-    } else {
-      acts.push({ name: 'LED Bulb',   state: 'on',    reason: 'Normal' });
-    }
+    if (lux < THRESHOLDS.adult.lux.lo)       acts.push({ name: 'LED Bulb', state: 'alert', reason: 'Light too LOW (' + lux + ' lx)' });
+    else if (lux > THRESHOLDS.adult.lux.hi)  acts.push({ name: 'LED Bulb', state: 'warn',  reason: 'Light too HIGH (' + lux + ' lx)' });
+    else                                      acts.push({ name: 'LED Bulb', state: 'on',    reason: 'Normal' });
   }
-
   return acts;
 }
 
-/** Build a list of alert strings for the Alerts column */
 function buildAlerts(cage, temp, hum, lux) {
   const thr    = THRESHOLDS[cage] || THRESHOLDS.larvae;
   const alerts = [];
   if (temp !== null && temp !== undefined) {
-    if (temp > thr.temp.hi) alerts.push({ level: 'danger', msg: 'Temp HIGH' });
-    else if (temp < thr.temp.lo) alerts.push({ level: 'danger', msg: 'Temp LOW' });
-    else if (temp > thr.temp.hi - 1.5) alerts.push({ level: 'warn', msg: 'Temp ↑' });
+    if (temp > thr.temp.hi)           alerts.push({ level: 'danger', msg: 'Temp HIGH' });
+    else if (temp < thr.temp.lo)      alerts.push({ level: 'danger', msg: 'Temp LOW' });
+    else if (temp > thr.temp.hi-1.5)  alerts.push({ level: 'warn',   msg: 'Temp ↑' });
   }
   if (hum !== null && hum !== undefined) {
-    if (hum < thr.hum.lo) alerts.push({ level: 'danger', msg: 'Humidity LOW' });
-    else if (hum > thr.hum.hi) alerts.push({ level: 'warn', msg: 'Humidity HIGH' });
+    if (hum < thr.hum.lo)       alerts.push({ level: 'danger', msg: 'Humidity LOW' });
+    else if (hum > thr.hum.hi)  alerts.push({ level: 'warn',   msg: 'Humidity HIGH' });
   }
   if (cage === 'adult' && lux !== null && lux !== undefined) {
-    if (lux < THRESHOLDS.adult.lux.lo) alerts.push({ level: 'danger', msg: 'Light LOW' });
-    else if (lux > THRESHOLDS.adult.lux.hi) alerts.push({ level: 'warn', msg: 'Light HIGH' });
+    if (lux < THRESHOLDS.adult.lux.lo)       alerts.push({ level: 'danger', msg: 'Light LOW' });
+    else if (lux > THRESHOLDS.adult.lux.hi)  alerts.push({ level: 'warn',   msg: 'Light HIGH' });
   }
   if (!alerts.length) alerts.push({ level: 'ok', msg: 'All normal' });
   return alerts;
 }
 
-/** Read all stored log entries */
-function dlogGetAll() {
-  try { const raw = localStorage.getItem(LS_DLOG_KEY); return raw ? JSON.parse(raw) : []; } catch(e) { return []; }
-}
-
-/** Append new sensor snapshot entries, capped at DLOG_MAX */
+function dlogGetAll() { try { const raw = localStorage.getItem(LS_DLOG_KEY); return raw ? JSON.parse(raw) : []; } catch(e) { return []; } }
 function dlogAppend(entries) {
-  try {
-    let log = dlogGetAll();
-    log = log.concat(entries);
-    if (log.length > DLOG_MAX) log = log.slice(log.length - DLOG_MAX);
-    localStorage.setItem(LS_DLOG_KEY, JSON.stringify(log));
-  } catch(e) {}
+  try { let log = dlogGetAll(); log = log.concat(entries); if (log.length > DLOG_MAX) log = log.slice(log.length - DLOG_MAX); localStorage.setItem(LS_DLOG_KEY, JSON.stringify(log)); } catch(e) {}
 }
+function fmtTs(ts) { const d = new Date(ts); const pad = n => String(n).padStart(2, '0'); return d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate()) + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds()); }
 
-/** Format a JS Date to readable timestamp */
-function fmtTs(ts) {
-  const d = new Date(ts);
-  const pad = n => String(n).padStart(2, '0');
-  return d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate())
-    + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds());
-}
-
-/** Capture a snapshot from latestSensors and store it */
 function captureDataLogSnapshot() {
   if (!latestSensors || !Object.keys(latestSensors).length) return;
-  const ts   = new Date().toISOString();
-  const snap = [];
-  const cages = ['larvae', 'pupa', 'adult'];
-  cages.forEach(cage => {
+  const ts = new Date().toISOString(), snap = [];
+  ['larvae', 'pupa', 'adult'].forEach(cage => {
     const sd = latestSensors[cage];
     if (!sd || (sd.temp === null && sd.humidity === null)) return;
-    snap.push({
-      ts,
-      cage,
-      temp : sd.temp,
-      hum  : sd.humidity,
-      lux  : cage === 'adult' ? sd.light : null
-    });
+    snap.push({ ts, cage, temp: sd.temp, hum: sd.humidity, lux: cage === 'adult' ? sd.light : null });
   });
   if (snap.length) dlogAppend(snap);
 }
 
-/** Actuator pill HTML */
 function actPillHtml(act) {
   const stateClass = { on:'on', off:'off', alert:'alert', warn:'warn' }[act.state] || 'off';
-  const iconMap = {
-    'DC Fan'     : 'wind',
-    'Heater'     : 'flame',
-    'Humidifier' : 'cloud-drizzle',
-    'LED Bulb'   : 'lightbulb'
-  };
+  const iconMap = { 'DC Fan':'wind', 'Heater':'flame', 'Humidifier':'cloud-drizzle', 'LED Bulb':'lightbulb' };
   const icon = iconMap[act.name] || 'zap';
-  return `<span class="act-pill ${stateClass}" title="${act.reason}">
-    <i data-lucide="${icon}" style="width:10px;height:10px"></i>${act.name}
-  </span>`;
+  return `<span class="act-pill ${stateClass}" title="${act.reason}"><i data-lucide="${icon}" style="width:10px;height:10px"></i>${act.name}</span>`;
 }
 
-/** Render the Data History table */
 function renderDataLog() {
-  const all     = dlogGetAll().slice().reverse(); // newest first
+  const all      = dlogGetAll().slice().reverse();
   const filtered = dlogFilter === 'all' ? all : all.filter(e => e.cage === dlogFilter);
-  const tbody   = document.getElementById('dlog-tbody');
-  const countEl = document.getElementById('dlog-count');
+  const tbody    = document.getElementById('dlog-tbody');
+  const countEl  = document.getElementById('dlog-count');
 
-  // Update filter button active states
   ['all','larvae','pupa','adult'].forEach(f => {
     const btn = document.getElementById('dlog-filter-' + f);
     if (btn) btn.classList.toggle('active-filter', f === dlogFilter);
   });
 
   if (!filtered.length) {
-    tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state">
-      <div class="empty-icon"><i data-lucide="database"></i></div>
-      No sensor data logged yet.<br>Data will appear here every 2 minutes once sensors are connected.
-    </div></td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><div class="empty-icon"><i data-lucide="database"></i></div>No sensor data logged yet.<br>Data will appear here every 2 minutes once sensors are connected.</div></td></tr>`;
     tbody.querySelectorAll('i[data-lucide]').forEach(n => lucide.createIcons({ nodes: [n] }));
     if (countEl) countEl.textContent = '';
     renderDlogSummary([]);
@@ -1635,24 +1533,19 @@ function renderDataLog() {
   }
 
   const CAGE_LUCIDE = { larvae: 'worm', pupa: 'shell', adult: 'bug' };
-
   tbody.innerHTML = filtered.map(entry => {
     const { ts, cage, temp, hum, lux } = entry;
     const acts   = deriveActuators(cage, temp, hum, lux);
     const alerts = buildAlerts(cage, temp, hum, lux);
     const thr    = THRESHOLDS[cage] || THRESHOLDS.larvae;
-
     const tempClass = temp === null ? '' : (temp > thr.temp.hi || temp < thr.temp.lo) ? 'style="color:var(--danger);font-weight:700"' : (temp > thr.temp.hi - 1.5 ? 'style="color:var(--warn)"' : 'style="color:var(--larvae)"');
-    const humClass  = hum  === null ? '' : (hum > thr.hum.hi || hum < thr.hum.lo)   ? 'style="color:var(--danger);font-weight:700"' : 'style="color:var(--larvae)"';
+    const humClass  = hum  === null ? '' : (hum > thr.hum.hi || hum < thr.hum.lo)    ? 'style="color:var(--danger);font-weight:700"' : 'style="color:var(--larvae)"';
     const lIcon     = CAGE_LUCIDE[cage] || 'circle';
-
-    const actsHtml   = acts.map(actPillHtml).join(' ');
+    const actsHtml  = acts.map(actPillHtml).join(' ');
     const alertsHtml = alerts.map(a =>
       `<span class="alert-tag ${a.level}"><i data-lucide="${a.level === 'danger' ? 'alert-circle' : a.level === 'warn' ? 'alert-triangle' : 'check-circle'}" style="width:10px;height:10px"></i>${a.msg}</span>`
     ).join('');
-
     const luxStr = (cage === 'adult' && lux !== null) ? lux + ' lx' : '<span style="color:var(--muted2)">—</span>';
-
     return `<tr>
       <td style="font-family:'IBM Plex Mono',monospace;font-size:.7rem;color:var(--muted);white-space:nowrap">${fmtTs(ts)}</td>
       <td><span class="dlog-cage-badge ${cage}"><i data-lucide="${lIcon}" style="width:11px;height:11px"></i>${cage}</span></td>
@@ -1663,16 +1556,11 @@ function renderDataLog() {
       <td><div style="display:flex;flex-wrap:wrap;gap:2px">${alertsHtml}</div></td>
     </tr>`;
   }).join('');
-
-  // Render icons in newly created rows
   tbody.querySelectorAll('i[data-lucide]').forEach(n => lucide.createIcons({ nodes: [n] }));
-
   if (countEl) countEl.textContent = filtered.length + ' of ' + all.length + ' entries shown';
-
   renderDlogSummary(all);
 }
 
-/** Render the 3 summary cards (one per cage) with latest readings */
 function renderDlogSummary(all) {
   const sumEl = document.getElementById('dlog-summary');
   if (!sumEl) return;
@@ -1682,14 +1570,11 @@ function renderDlogSummary(all) {
   const CAGE_LABEL  = { larvae: 'Larvae Cage', pupa: 'Pupae Cage', adult: 'Adult Cage' };
 
   sumEl.innerHTML = cages.map(cage => {
-    // Latest entry for this cage
     const entries = all.filter(e => e.cage === cage);
-    const latest  = entries[0] || null; // already reversed, so [0] = newest
+    const latest  = entries[0] || null;
     const color   = CAGE_COLORS[cage];
     const lIcon   = CAGE_LUCIDE[cage];
-
-    // Count alerts in last 10 entries
-    const recent     = entries.slice(0, 10);
+    const recent  = entries.slice(0, 10);
     const alertCount = recent.reduce((acc, e) => {
       const a = buildAlerts(cage, e.temp, e.hum, e.lux);
       return acc + a.filter(x => x.level === 'danger').length;
@@ -1702,9 +1587,9 @@ function renderDlogSummary(all) {
       </div>`;
     }
 
-    const thr       = THRESHOLDS[cage];
-    const tempOk    = latest.temp !== null && latest.temp >= thr.temp.lo && latest.temp <= thr.temp.hi;
-    const humOk     = latest.hum  !== null && latest.hum  >= thr.hum.lo  && latest.hum  <= thr.hum.hi;
+    const thr    = THRESHOLDS[cage];
+    const tempOk = latest.temp !== null && latest.temp >= thr.temp.lo && latest.temp <= thr.temp.hi;
+    const humOk  = latest.hum  !== null && latest.hum  >= thr.hum.lo  && latest.hum  <= thr.hum.hi;
     const statusClr = alertCount > 0 ? 'var(--danger)' : 'var(--larvae)';
     const statusTxt = alertCount > 0 ? alertCount + ' alert' + (alertCount > 1 ? 's' : '') + ' (last 10)' : 'All normal';
 
@@ -1739,17 +1624,10 @@ function renderDlogSummary(all) {
       </div>
     </div>`;
   }).join('');
-
   sumEl.querySelectorAll('i[data-lucide]').forEach(n => lucide.createIcons({ nodes: [n] }));
 }
 
-/** Filter button handler */
-function filterDataLog(cage) {
-  dlogFilter = cage;
-  renderDataLog();
-}
-
-/** Clear all log data */
+function filterDataLog(cage) { dlogFilter = cage; renderDataLog(); }
 function clearDataLog() {
   if (!confirm('Clear all sensor log data? This cannot be undone.')) return;
   try { localStorage.removeItem(LS_DLOG_KEY); } catch(e) {}
@@ -1757,12 +1635,9 @@ function clearDataLog() {
   toast('Sensor log cleared.', 'info');
 }
 
-// Start the 2-minute snapshot interval (120 000 ms)
-// Also capture one immediately when first sensor data arrives
 let _dlogInterval = null;
 function startDataLogInterval() {
   if (_dlogInterval) return;
-  // Take first snapshot 30s after boot (give sensors time to connect)
   setTimeout(() => {
     captureDataLogSnapshot();
     _dlogInterval = setInterval(captureDataLogSnapshot, 120000);
@@ -1799,7 +1674,7 @@ async function confirmResetCycle() {
 }
 
 // ══════════════════════════════════════════════════════
-//  BOOT — deferred until Lucide is loaded
+//  BOOT
 // ══════════════════════════════════════════════════════
 function _boot() {
   applyTheme(currentTheme);
@@ -1809,8 +1684,6 @@ function _boot() {
 }
 </script>
 
-<!-- Lucide must load AFTER the app script so all functions exist,
-     and we boot only once lucide is ready via onload -->
 <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js" onload="_boot()"></script>
 </body>
 </html>
