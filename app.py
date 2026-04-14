@@ -17,6 +17,11 @@ app = Flask(__name__)
 CORS(app, resources={r"/api/*": {"origins": "*"}})
 app.secret_key = "bsf_monitor_secret_2024"
 
+@app.route('/api/sensors', methods=['GET'])
+def get_sensors():
+    with data_lock:
+        return jsonify({"sensors": sensor_data})
+
 # ── LOGIN SETUP ──────────────────────────────────────────────
 login_manager = LoginManager()
 login_manager.init_app(app)
