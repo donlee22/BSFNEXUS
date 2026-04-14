@@ -140,17 +140,17 @@ def stage_from_week(week):
     else:           return "adult"
 
 def stageFromDay(day):
-    if day <= 18:   return "larvae"
-    elif day <= 32: return "pupa"
+    if day <= 24:   return "larvae"
+    elif day <= 38: return "pupa"
     else:           return "adult"
 
 def growth_sigmoid(day):
-    """Return sigmoid growth factor for a given day (0.0 → 1.0)."""
+    """Return sigmoid growth factor for a given day (0.0 -> 1.0)."""
     day = int(day)
     if day < 5:
         return 0.02
-    elif 5 <= day <= 18:
-        progress = (day - 5) / (18 - 5)
+    elif 5 <= day <= 24:
+        progress = (day - 5) / (24 - 5)
         return float(1 / (1 + np.exp(-10 * (progress - 0.5))))
     else:
         return 1.0
@@ -288,7 +288,8 @@ def build_col_values_from_weeks(weeks):
     col_values = {}
     lt = avg(stage_data.get("larvae", {}).get("temps", []))
     lh = avg(stage_data.get("larvae", {}).get("hums",  []))
-    fg = avg(stage_data.get("larvae", {}).get("feeds", []))
+    feeds = stage_data.get("larvae", {}).get("feeds", [])
+    fg = feeds[-1] if feeds else None
     pt = avg(stage_data.get("pupa",   {}).get("temps", []))
     ph = avg(stage_data.get("pupa",   {}).get("hums",  []))
     at = avg(stage_data.get("adult",  {}).get("temps", []))
