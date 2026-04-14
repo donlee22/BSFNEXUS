@@ -842,15 +842,30 @@ function stageLabel(s) {
 //  CYCLE BAR (realtime tab)
 // ══════════════════════════════════════════════════════
 function updateCycleHighlight(day) {
-  day = parseInt(day) || 1;
-  ['seg-egg','seg-larv','seg-pupa','seg-adlt'].forEach(s => document.getElementById(s).classList.remove('current'));
-  if (day <= 4)       document.getElementById('seg-egg').classList.add('current');
-  else if (day <= 24) document.getElementById('seg-larv').classList.add('current');
-  else if (day <= 38) document.getElementById('seg-pupa').classList.add('current');
-  else                document.getElementById('seg-adlt').classList.add('current');
-}
-updateCycleHighlight(1);
+  // These must match the id="name" in your HTML segments
+  const segments = ['seg-egg', 'seg-larv', 'seg-pupae', 'seg-adlt'];
+  
+  segments.forEach(id => {
+    const el = document.getElementById(id);
+    // This 'if (el)' is the most important part! 
+    // it only runs the code if the element is actually found.
+    if (el) { 
+      el.classList.remove('current');
+    }
+  });
 
+  // Example logic to add the 'current' class back
+  let currentId = '';
+  if (day <= 4) currentId = 'seg-egg';
+  else if (day <= 24) currentId = 'seg-larv';
+  else if (day <= 38) currentId = 'seg-pupae';
+  else currentId = 'seg-adlt';
+
+  const currentEl = document.getElementById(currentId);
+  if (currentEl) {
+    currentEl.classList.add('current');
+  }
+}
 // ══════════════════════════════════════════════════════
 //  SENSORS
 // ══════════════════════════════════════════════════════
@@ -945,7 +960,7 @@ function renderModelCards(allPreds, bestModel, container) {
 // ══════════════════════════════════════════════════════
 async function loadCycle() {
   try {
-    const r = await fetch('/api/cycle');
+    const r = await fetch(${NGROK_URL}/api/cycle');
     const d = await r.json();
     currentCycleId = d.current_cycle || 1;
     lsSaveCycleId(currentCycleId);
@@ -1721,4 +1736,58 @@ function _boot() {
 
 <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js" onload="_boot()"></script>
 </body>
+
+<script>
+const NGROK_URL = 'https://dropbox-overprice-amiable.ngrok-free.dev';
+
+// 1. UPDATE MO LAHAT NG FETCH CALLS MO GAYA NITO:
+async function loadCycle() {
+    try {
+        // Imbes na '/api/cycle', ginawa nating full link
+        const response = await fetch(`${NGROK_URL}/api/cycle`);
+        if (!response.ok) throw new Error('Network response was not ok');
+        const data = await response.json();
+        
+        // Dito mo ilalagay yung code mo para i-display yung 4g eggs at current day
+        document.getElementById('current-day').value = data.current_day;
+        updateCycleHighlight(data.current_day);
+        console.log("Cycle data loaded:", data);
+    } catch (error) {
+        console.error("loadCycle error:", error);
+    }
+}
+
+// 2. UPDATE MO RIN ANG SENSORS (BH1750, Temp, Hum)
+async function loadRealtimeData() {
+    try {
+        const response = await fetch(`${NGROK_URL}/api/sensors`);
+        const data = await response.json();
+        
+        // I-update ang mga values sa dashboard (Example IDs lang ito, check mo sa HTML mo)
+        if(document.getElementById('l-temp')) document.getElementById('l-temp').innerText = data.temp;
+        if(document.getElementById('l-hum')) document.getElementById('l-hum').innerText = data.hum;
+        // BH1750 Lux
+        if(document.getElementById('p-temp')) document.getElementById('p-temp').innerText = data.lux;
+        
+    } catch (error) {
+        console.log("Sensor fetch error. Is ngrok running?");
+    }
+}
+
+// 3. FIX SA LOGOUT BUTTON PARA HINDI MAG-404
+document.getElementById('btn-logout').addEventListener('click', function(e) {
+    e.preventDefault(); // Pigilan yung default 404 behavior
+    
+    // Tawagan ang logout sa Raspberry Pi
+    fetch(`${NGROK_URL}/logout`).then(() => {
+        // Pagkatapos mag-logout sa Pi, bumalik sa Login page ng Vercel
+        window.location.href = "https://bsfnexus.vercel.app/";
+    });
+});
+
+// Patakbuhin ang auto-refresh tuwing 3 seconds
+setInterval(loadRealtimeData, 3000);
+loadCycle();
+</script>
+
 </html>
