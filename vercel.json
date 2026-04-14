@@ -3,7 +3,7 @@
   "rewrites": [
     {
       "source": "/logout",
-      "destination": "/"
+      "destination": "https://your-ngrok-link.ngrok-free.app/logout"
     }
   ]
 }
