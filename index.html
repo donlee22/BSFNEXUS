@@ -1676,7 +1676,10 @@ function toggleCycleMenu(e) {
   const m = document.getElementById('cycle-menu');
   m.style.display = m.style.display === 'none' ? 'block' : 'none';
 }
-document.addEventListener('click', () => { const m = document.getElementById('cycle-menu'); if (m) m.style.display = 'none'; });
+document.addEventListener('click', () => {
+  const m = document.getElementById('cycle-menu');
+  if (m) m.style.display = 'none';
+});
 
 async function confirmResetCycle() {
   document.getElementById('cycle-menu').style.display = 'none';
@@ -1692,8 +1695,7 @@ async function confirmResetCycle() {
 }
 
 // ── ROUTE ALL API CALLS THROUGH NGROK ──
-const API_BASE = "https://dropbox-overprice-amiable.ngrok-free.dev";
-
+const API_BASE = "https://dropbox-overprice-amiable.ngrok-free.app";
 const _origFetch = window.fetch.bind(window);
 window.fetch = function(url, opts = {}) {
   if (typeof url === 'string' && url.startsWith('/api')) {
@@ -1705,51 +1707,6 @@ window.fetch = function(url, opts = {}) {
   }
   return _origFetch(url, opts);
 };
-<script src="https://unpkg.com/lucide@latest"></script>
-<script>
-  // Initialize Icons
-  lucide.createIcons();
-
-  const NGROK_URL = ""; 
-
-  async function updateDashboard() {
-    try {
-      const response = await fetch(`/api/sensors`);
-      const data = await response.json();
-      
-      const s = data.sensors;
-
-      // Update Larvae Card (IDs from your HTML)
-      document.getElementById('l-temp').innerHTML = `${s.larvae.temp}<span class="sbox-unit">°C</span>`;
-      document.getElementById('l-hum').innerHTML = `${s.larvae.humidity}<span class="sbox-unit">%</span>`;
-      document.getElementById('l-ts').innerText = "Last update: " + new Date().toLocaleTimeString();
-
-      // Update Pupa Card
-      document.getElementById('p-temp').innerHTML = `${s.pupa.temp}<span class="sbox-unit">°C</span>`;
-      document.getElementById('p-hum').innerHTML = `${s.pupa.humidity}<span class="sbox-unit">%</span>`;
-
-      // Update Adult Card (Make sure these IDs exist in your Adult card!)
-      if(document.getElementById('a-temp')) {
-          document.getElementById('a-temp').innerHTML = `${s.adult.temp}<span class="sbox-unit">°C</span>`;
-          document.getElementById('a-hum').innerHTML = `${s.adult.humidity}<span class="sbox-unit">%</span>`;
-          document.getElementById('a-light').innerHTML = `${s.adult.light}<span class="sbox-unit"> lx</span>`;
-      }
-
-      // Update Status LED
-      document.getElementById('led').classList.add('on');
-      document.getElementById('conn-label').innerText = "Connected";
-
-    } catch (err) {
-      console.error("Link to Pi lost:", err);
-      document.getElementById('led').classList.remove('on');
-      document.getElementById('conn-label').innerText = "Disconnected";
-    }
-  }
-
-  // Refresh every 3 seconds to match your UI label
-  setInterval(updateDashboard, 3000);
-  updateDashboard(); // Run once immediately
-</script>
 
 // ══════════════════════════════════════════════════════
 //  BOOT
@@ -1765,4 +1722,3 @@ function _boot() {
 <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js" onload="_boot()"></script>
 </body>
 </html>
-
