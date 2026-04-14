@@ -272,11 +272,26 @@ canvas{max-height:220px}
       </div>
     </div>
     <div class="hdr-right">
-      <a href="/logout">
-        <button id="btn-logout" style="font-family:'IBM Plex Mono',monospace;font-size:.65rem;padding:5px 14px;background:none;border:1px solid #ff5252;color:#ff5252;border-radius:8px;cursor:pointer;display:inline-flex;align-items:center;gap:6px">
-          <i data-lucide="log-out" style="width:13px;height:13px"></i> Logout
-        </button>
-      </a>
+      <div class="hdr-right">
+  <button id="btn-logout" onclick="handleLogout()" style="font-family:'IBM Plex Mono',monospace;font-size:.65rem;padding:5px 14px;background:none;border:1px solid #ff5252;color:#ff5252;border-radius:8px;cursor:pointer;display:inline-flex;align-items:center;gap:6px">
+    <i data-lucide="log-out" style="width:13px;height:13px"></i> Logout
+  </button>
+</div>
+
+<script>
+function handleLogout() {
+    // 1. Tell your Raspberry Pi (via ngrok) to log out
+    // Replace the URL below with your actual ngrok logout link
+    fetch('https://your-ngrok-id.ngrok-free.app/logout');
+
+    // 2. Clear local data so the user is "logged out" in the browser
+    localStorage.clear();
+    sessionStorage.clear();
+
+    // 3. Redirect the user back to your Vercel home page
+    window.location.href = "/"; 
+}
+</script>
       <button class="theme-toggle" id="theme-toggle-btn" onclick="toggleTheme()" title="Toggle light/dark theme">
         <i data-lucide="sun" id="theme-icon" style="width:16px;height:16px"></i>
       </button>
