@@ -1,0 +1,12 @@
+{
+  "current_cycle": 2,
+  "cycles": {
+    "2": {
+      "cycle_id": 2,
+      "started_at": "2026-03-23T20:20:55.802251",
+      "finished": false,
+      "actual_yield_g": null,
+      "weeks": []
+    }
+  }
+}

@@ -1,0 +1,1689 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>BSF Larvae Monitor & Prediction System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Outfit:wght@300;400;600;800;900&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+/* ── DARK THEME (default) ── */
+:root,[data-theme="dark"]{
+  --bg:#080c0b;--bg2:#0d1410;--surface:#111c17;--card:#142019;--border:#1c3326;--border2:#234030;
+  --larvae:#00e676;--pupa:#40c4ff;--adult:#ffab40;--danger:#ff5252;--warn:#ffd740;
+  --text:#e0f2e9;--muted:#4a7060;--muted2:#2a4535;--r:12px;
+  --header-bg:rgba(8,12,11,.88);
+  --grid-color:rgba(0,230,118,.025);
+  --glow1:rgba(0,230,118,.04);--glow2:rgba(64,196,255,.04);
+  --scrollbar-thumb:#234030;
+}
+[data-theme="light"]{
+  --bg:#f0f7f2;--bg2:#e6f0ea;--surface:#ffffff;--card:#ffffff;--border:#c8dfd0;--border2:#a8ccb5;
+  --larvae:#00a84f;--pupa:#0077b6;--adult:#e06400;--danger:#d32f2f;--warn:#f57c00;
+  --text:#1a2e22;--muted:#5a7a66;--muted2:#8aaa96;--r:12px;
+  --header-bg:rgba(240,247,242,.92);
+  --grid-color:rgba(0,168,79,.04);
+  --glow1:rgba(0,168,79,.06);--glow2:rgba(0,119,182,.06);
+  --scrollbar-thumb:#a8ccb5;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;transition:background .3s,color .3s}
+body::before{content:'';position:fixed;inset:0;background-image:radial-gradient(ellipse 80% 50% at 20% 20%,var(--glow1) 0%,transparent 60%),radial-gradient(ellipse 60% 40% at 80% 70%,var(--glow2) 0%,transparent 60%);pointer-events:none;z-index:0;transition:opacity .3s}
+body::after{content:'';position:fixed;inset:0;background-image:linear-gradient(var(--grid-color) 1px,transparent 1px),linear-gradient(90deg,var(--grid-color) 1px,transparent 1px);background-size:48px 48px;pointer-events:none;z-index:0}
+.z1{position:relative;z-index:1}
+::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-track{background:var(--bg2)}::-webkit-scrollbar-thumb{background:var(--scrollbar-thumb);border-radius:3px}
+.wrap{max-width:1320px;margin:0 auto;padding:0 24px}
+header{position:sticky;top:0;z-index:200;background:var(--header-bg);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);padding:14px 0;transition:background .3s,border-color .3s}
+.hdr{display:flex;align-items:center;justify-content:space-between;gap:16px}
+.brand{display:flex;align-items:center;gap:12px}
+.brand-mark{width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,#00e676,#00b248);display:grid;place-items:center;font-size:20px;box-shadow:0 0 16px rgba(0,230,118,.4)}
+.brand-name{font-size:1.15rem;font-weight:800;letter-spacing:-.3px}
+.brand-name em{color:var(--larvae);font-style:normal}
+.brand-sub{font-family:'IBM Plex Mono',monospace;font-size:.62rem;color:var(--muted);margin-top:1px}
+.hdr-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.theme-toggle{width:36px;height:36px;border-radius:50%;border:1px solid var(--border2);background:var(--surface);cursor:pointer;display:grid;place-items:center;transition:all .2s;box-shadow:0 2px 8px rgba(0,0,0,.15);flex-shrink:0;}
+.theme-toggle:hover{transform:rotate(20deg) scale(1.1);border-color:var(--larvae);box-shadow:0 0 12px rgba(0,230,118,.3)}
+[data-theme="light"] .theme-toggle:hover{box-shadow:0 0 12px rgba(0,168,79,.3)}
+.status-chip{display:flex;align-items:center;gap:7px;padding:6px 14px;border-radius:100px;border:1px solid var(--border2);background:var(--surface);font-family:'IBM Plex Mono',monospace;font-size:.68rem;transition:background .3s,border-color .3s}
+.cycle-chip{display:flex;align-items:center;gap:7px;padding:6px 14px;border-radius:100px;border:1px solid var(--larvae);background:rgba(0,230,118,.08);font-family:'IBM Plex Mono',monospace;font-size:.68rem;color:var(--larvae)}
+[data-theme="light"] .cycle-chip{background:rgba(0,168,79,.08)}
+.led{width:7px;height:7px;border-radius:50%;background:var(--danger)}
+.led.on{background:var(--larvae);box-shadow:0 0 8px var(--larvae)}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
+.led{animation:blink 2s infinite}.led.on{animation:blink 1.5s infinite}
+.nav-tabs{display:flex;gap:0;border-bottom:1px solid var(--border);padding:22px 0 0;margin-bottom:28px;overflow-x:auto;transition:border-color .3s}
+.ntab{padding:11px 24px;cursor:pointer;font-weight:600;font-size:.85rem;color:var(--muted);border:1px solid transparent;border-bottom:none;border-radius:var(--r) var(--r) 0 0;background:transparent;transition:all .18s;position:relative;bottom:-1px;white-space:nowrap;display:flex;align-items:center;gap:7px}
+.ntab.active{background:var(--card);border-color:var(--border);border-bottom-color:var(--card);color:var(--larvae)}
+.ntab:hover:not(.active){color:var(--text)}
+.ntab .icon-tab{width:15px;height:15px;stroke:currentColor;flex-shrink:0}
+.panel{display:none}.panel.active{display:block;animation:fadeUp .25s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.sh{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:10px}
+.sh-left{display:flex;align-items:center;gap:10px}
+.sh-title{font-size:1.05rem;font-weight:800}
+.sh-bar{width:3px;height:18px;background:var(--larvae);border-radius:2px}
+.cycle-wrap{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:20px 22px;margin-bottom:24px;transition:background .3s,border-color .3s}
+.cycle-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.cycle-title{font-family:'IBM Plex Mono',monospace;font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+.day-input-row{display:flex;align-items:center;gap:8px}
+.day-input-row label{font-family:'IBM Plex Mono',monospace;font-size:.68rem;color:var(--muted)}
+.day-input{width:60px;padding:4px 8px;background:var(--surface);border:1px solid var(--border2);border-radius:6px;color:var(--text);font-family:'IBM Plex Mono',monospace;font-size:.8rem;outline:none;transition:background .3s,border-color .2s,color .3s}
+.day-input:focus{border-color:var(--larvae)}
+.cycle-bar{display:flex;border-radius:8px;overflow:hidden;height:36px;border:1px solid var(--border2)}
+.cseg{display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-size:.65rem;font-weight:700;transition:flex .4s ease;overflow:hidden;position:relative}
+.cseg span{display:flex;align-items:center;gap:5px;white-space:nowrap;padding:0 6px}
+.cseg .icon-seg{width:12px;height:12px;stroke:currentColor;flex-shrink:0}
+/* Proportional widths: Egg=4, Larvae=20, Pupa=14, Adult=7 → total=45 */
+.cseg-egg{background:#132e22;color:#5ecf95;flex:4}
+.cseg-larv{background:#0e2a1a;color:var(--larvae);flex:20}
+.cseg-pupa{background:#0e2034;color:var(--pupa);flex:14}
+.cseg-adlt{background:#2e1e08;color:var(--adult);flex:7}
+[data-theme="light"] .cseg-egg{background:#d4edda;color:#00a84f}
+[data-theme="light"] .cseg-larv{background:#c8e6c9;color:#005f2a}
+[data-theme="light"] .cseg-pupa{background:#bbdefb;color:#0077b6}
+[data-theme="light"] .cseg-adlt{background:#ffe0b2;color:#e06400}
+.cseg.current::after{content:'▼';position:absolute;bottom:2px;left:50%;transform:translateX(-50%);font-size:.55rem;color:#fff;opacity:.7}
+[data-theme="light"] .cseg.current::after{color:#333}
+.cycle-legend{display:flex;flex-wrap:wrap;gap:18px;margin-top:12px}
+.cl-item{display:flex;align-items:center;gap:6px;font-size:.75rem;color:var(--muted)}
+.cl-dot{width:10px;height:10px;border-radius:3px}
+.stages{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-bottom:28px}
+@media(max-width:900px){.stages{grid-template-columns:1fr 1fr}}
+@media(max-width:600px){.stages{grid-template-columns:1fr}}
+.scard{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:20px;position:relative;overflow:hidden;transition:transform .2s,box-shadow .2s,background .3s,border-color .3s}
+.scard:hover{transform:translateY(-3px);box-shadow:0 12px 40px rgba(0,0,0,.2)}
+[data-theme="light"] .scard:hover{box-shadow:0 12px 40px rgba(0,0,0,.1)}
+.scard::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.scard.larvae::before{background:linear-gradient(90deg,var(--larvae),#00b248)}
+.scard.pupa::before{background:linear-gradient(90deg,var(--pupa),#0091ea)}
+.scard.adult::before{background:linear-gradient(90deg,var(--adult),#ff6d00)}
+.scard-glow{position:absolute;top:-40px;right:-40px;width:120px;height:120px;border-radius:50%;pointer-events:none;opacity:.35;filter:blur(30px)}
+[data-theme="light"] .scard-glow{opacity:.15}
+.scard.larvae .scard-glow{background:var(--larvae)}.scard.pupa .scard-glow{background:var(--pupa)}.scard.adult .scard-glow{background:var(--adult)}
+.scard-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px}
+.scard-name{font-size:1rem;font-weight:800;text-transform:uppercase;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
+.scard-name .icon-card{width:18px;height:18px;stroke:currentColor;flex-shrink:0}
+.scard.larvae .scard-name{color:var(--larvae)}.scard.pupa .scard-name{color:var(--pupa)}.scard.adult .scard-name{color:var(--adult)}
+.scard-days{font-family:'IBM Plex Mono',monospace;font-size:.65rem;color:var(--muted);background:var(--surface);padding:3px 8px;border-radius:5px;border:1px solid var(--border);transition:background .3s,border-color .3s}
+.sensors{display:flex;gap:10px;flex-wrap:wrap}
+.sbox{flex:1;min-width:72px;background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:11px 13px;transition:background .3s,border-color .3s}
+.sbox-label{font-family:'IBM Plex Mono',monospace;font-size:.58rem;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:5px;display:flex;align-items:center;gap:4px}
+.sbox-label .icon-sensor{width:10px;height:10px;stroke:currentColor}
+.sbox-val{font-family:'IBM Plex Mono',monospace;font-size:1.45rem;font-weight:700;line-height:1}
+.sbox-unit{font-size:.7rem;color:var(--muted);margin-left:2px}
+.sbox-val.good{color:var(--larvae)}.sbox-val.warn{color:var(--warn)}.sbox-val.bad{color:var(--danger)}
+.actuators{margin-top:14px;padding-top:13px;border-top:1px solid var(--border);display:flex;flex-wrap:wrap;gap:6px}
+.act-badge{font-family:'IBM Plex Mono',monospace;font-size:.6rem;padding:3px 9px;border-radius:100px;border:1px solid var(--border2);color:var(--muted);background:var(--surface);display:inline-flex;align-items:center;gap:5px;transition:background .3s,border-color .3s}
+.act-badge .icon-act{width:11px;height:11px;stroke:currentColor;flex-shrink:0}
+.scard-ts{margin-top:10px;font-family:'IBM Plex Mono',monospace;font-size:.6rem;color:var(--muted2);text-align:right}
+.form-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:22px;transition:background .3s,border-color .3s}
+.form-title{font-size:.95rem;font-weight:800;color:var(--larvae);margin-bottom:18px;padding-bottom:12px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px}
+.form-title .icon-form{width:17px;height:17px;stroke:currentColor}
+.fg{margin-bottom:13px}
+.fg label{display:block;font-family:'IBM Plex Mono',monospace;font-size:.65rem;color:var(--muted);margin-bottom:5px;text-transform:uppercase}
+.fg input{width:100%;padding:9px 13px;background:var(--surface);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:'IBM Plex Mono',monospace;font-size:.88rem;outline:none;transition:border-color .2s,background .3s,color .3s}
+.fg input:focus{border-color:var(--larvae)}
+.fg input::placeholder{color:var(--muted2)}
+.stage-hint-box{background:var(--surface);border:1px solid var(--border2);border-radius:8px;padding:8px 12px;margin-bottom:13px;font-family:'IBM Plex Mono',monospace;font-size:.68rem;color:var(--muted);display:flex;align-items:center;gap:8px;transition:background .3s,border-color .3s}
+.stage-hint-box .icon-hint{width:14px;height:14px;stroke:currentColor;flex-shrink:0}
+.btn{width:100%;padding:11px 18px;border:none;border-radius:8px;font-family:'Outfit',sans-serif;font-size:.88rem;font-weight:700;cursor:pointer;transition:opacity .18s,transform .1s;margin-top:4px;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn:hover{opacity:.85}.btn:active{transform:scale(.98)}
+.btn .icon-btn{width:15px;height:15px;stroke:currentColor;flex-shrink:0}
+.btn-primary{background:var(--larvae);color:#080c0b}
+[data-theme="light"] .btn-primary{color:#fff}
+.btn-secondary{background:transparent;color:var(--pupa);border:1px solid var(--pupa);margin-top:8px}
+.btn-danger{background:var(--danger);color:#fff;margin-top:8px}
+.btn-danger-sm{background:none;border:none;color:var(--danger);cursor:pointer;padding:3px 7px;border-radius:5px;transition:background .15s;display:inline-flex;align-items:center}
+.btn-danger-sm:hover{background:rgba(255,82,82,.12)}
+.btn-danger-sm .icon-del{width:13px;height:13px;stroke:currentColor}
+.table-wrap{background:var(--card);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:20px;transition:background .3s,border-color .3s}
+.table-scroll{overflow-x:auto;max-height:380px;overflow-y:auto;}
+table{width:100%;border-collapse:collapse}
+thead tr{background:var(--surface);border-bottom:1px solid var(--border)}
+th{padding:11px 15px;text-align:left;font-family:'IBM Plex Mono',monospace;font-size:.63rem;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;white-space:nowrap;position:sticky;top:0;background:var(--surface);z-index:2;}
+td{padding:11px 15px;font-family:'IBM Plex Mono',monospace;font-size:.78rem;border-bottom:1px solid var(--border)}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover{background:rgba(0,230,118,.025)}
+[data-theme="light"] tbody tr:hover{background:rgba(0,168,79,.05)}
+.td-day{color:var(--muted);font-weight:700}.td-pred{color:var(--larvae);font-weight:700}.td-actual{color:var(--adult)}
+.empty-state{text-align:center;padding:44px;font-family:'IBM Plex Mono',monospace;font-size:.78rem;color:var(--muted)}
+.empty-icon{font-size:2.2rem;margin-bottom:10px;display:flex;justify-content:center}
+.empty-icon svg{width:36px;height:36px;stroke:var(--muted)}
+.charts-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+@media(max-width:800px){.charts-grid{grid-template-columns:1fr}}
+.chart-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:20px;transition:background .3s,border-color .3s}
+.chart-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.chart-title{font-size:.88rem;font-weight:700;display:flex;align-items:center;gap:7px}
+.chart-title .icon-chart{width:15px;height:15px;stroke:currentColor}
+canvas{max-height:220px}
+.conf-badge{display:inline-block;font-family:'IBM Plex Mono',monospace;font-size:.62rem;font-weight:700;padding:3px 10px;border-radius:100px;border:1px solid;text-transform:uppercase;letter-spacing:.3px}
+.conf-low{color:var(--danger);border-color:var(--danger);background:rgba(255,82,82,.1)}
+.conf-medium{color:var(--warn);border-color:var(--warn);background:rgba(255,215,64,.1)}
+.conf-mediumhigh{color:var(--pupa);border-color:var(--pupa);background:rgba(64,196,255,.1)}
+.conf-high{color:var(--larvae);border-color:var(--larvae);background:rgba(0,230,118,.1)}
+[data-theme="light"] .conf-high{background:rgba(0,168,79,.1)}
+
+/* ── Daily progress bar ── */
+.prog-wrap{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:18px 20px;margin-bottom:20px;transition:background .3s,border-color .3s}
+.prog-top{display:flex;justify-content:space-between;margin-bottom:8px;font-family:'IBM Plex Mono',monospace;font-size:.65rem;color:var(--muted)}
+.prog-track{height:6px;background:var(--surface);border-radius:10px;overflow:hidden;margin-bottom:10px}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--larvae),#00b248);border-radius:10px;transition:width .5s ease}
+
+/* Stage mini-bar — proportional: Egg=4, Larvae=20, Pupa=14, Adult=7 */
+.stage-mini-bar{display:flex;border-radius:6px;overflow:hidden;height:22px;border:1px solid var(--border2);margin-top:8px}
+.smb-seg{display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-size:.58rem;font-weight:700;position:relative;overflow:hidden;transition:all .3s;gap:4px}
+.smb-seg .icon-smb{width:11px;height:11px;stroke:currentColor;flex-shrink:0}
+.smb-egg{background:#132e22;color:#5ecf95;flex:4}
+.smb-larv{background:#0e2a1a;color:var(--larvae);flex:20}
+.smb-pupa{background:#0e2034;color:var(--pupa);flex:14}
+.smb-adlt{background:#2e1e08;color:var(--adult);flex:7}
+.smb-seg.done{opacity:.5}
+.smb-seg.active-stage{outline:2px solid currentColor;outline-offset:-2px}
+[data-theme="light"] .smb-egg{background:#d4edda;color:#00a84f}
+[data-theme="light"] .smb-larv{background:#c8e6c9;color:#005f2a}
+[data-theme="light"] .smb-pupa{background:#bbdefb;color:#0077b6}
+[data-theme="light"] .smb-adlt{background:#ffe0b2;color:#e06400}
+
+.finish-box{background:rgba(255,82,82,.06);border:1px solid rgba(255,82,82,.3);border-radius:var(--r);padding:20px 22px;margin-top:20px}
+.finish-title{font-size:.95rem;font-weight:800;color:var(--danger);margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.finish-title .icon-finish{width:16px;height:16px;stroke:currentColor}
+.finish-row{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap}
+.hist-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:20px 22px;margin-bottom:16px;transition:background .3s,border-color .3s}
+.hist-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;flex-wrap:wrap;gap:8px}
+.hist-cycle-title{font-family:'IBM Plex Mono',monospace;font-size:1rem;font-weight:700;color:var(--larvae)}
+.hist-dates{font-family:'IBM Plex Mono',monospace;font-size:.62rem;color:var(--muted);margin-top:3px;display:flex;align-items:center;gap:5px}
+.hist-dates .icon-date{width:11px;height:11px;stroke:currentColor}
+.hist-stats{display:flex;gap:24px;flex-wrap:wrap}
+.hist-stat-label{font-family:'IBM Plex Mono',monospace;font-size:.6rem;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
+.hist-stat-val{font-family:'IBM Plex Mono',monospace;font-size:1.3rem;font-weight:700;color:var(--text);line-height:1.2}
+.hist-stat-val.good{color:var(--larvae)}.hist-stat-val.bad{color:var(--danger)}
+.hist-weeks-wrap{margin-top:14px;padding-top:14px;border-top:1px solid var(--border);overflow-x:auto;max-height:260px;overflow-y:auto;}
+.hist-weeks-table{width:100%;border-collapse:collapse;font-family:'IBM Plex Mono',monospace;font-size:.68rem}
+.hist-weeks-table th{color:var(--muted);padding:4px 10px;text-align:left;font-weight:500;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--card);z-index:1}
+.hist-weeks-table td{padding:6px 10px;border-bottom:1px solid var(--border2);color:var(--text)}
+.hist-weeks-table tr:last-child td{border-bottom:none}
+.toast{position:fixed;bottom:24px;right:24px;z-index:999;background:var(--surface);border:1px solid var(--border2);border-radius:var(--r);padding:12px 20px;font-family:'IBM Plex Mono',monospace;font-size:.75rem;box-shadow:0 8px 32px rgba(0,0,0,.5);transform:translateY(20px);opacity:0;transition:all .3s;pointer-events:none;max-width:320px;display:flex;align-items:center;gap:8px}
+.toast.show{transform:translateY(0);opacity:1}
+.toast.ok{border-left:3px solid var(--larvae);color:var(--larvae)}
+.toast.err{border-left:3px solid var(--danger);color:var(--danger)}
+.toast.info{border-left:3px solid var(--pupa);color:var(--pupa)}
+.toast .icon-toast{width:15px;height:15px;stroke:currentColor;flex-shrink:0}
+.divider{height:1px;background:var(--border);margin:18px 0}
+.model-pred-cards{display:flex;gap:12px;flex-wrap:wrap;margin-top:10px}
+.model-pred-card{flex:1;min-width:130px;background:var(--surface);border-radius:10px;padding:14px 16px;border:1px solid var(--border);transition:background .3s,border-color .3s}
+.model-pred-card.best{box-shadow:0 0 16px rgba(0,230,118,.2)}
+[data-theme="light"] .model-pred-card.best{box-shadow:0 0 16px rgba(0,168,79,.15)}
+.model-pred-name{font-family:'IBM Plex Mono',monospace;font-size:.62rem;font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:5px}
+.model-pred-name .icon-model{width:12px;height:12px;stroke:currentColor}
+.model-pred-val{font-family:'IBM Plex Mono',monospace;font-size:1.6rem;font-weight:800;line-height:1}
+.model-pred-meta{font-family:'IBM Plex Mono',monospace;font-size:.6rem;color:var(--muted);margin-top:5px}
+.model-pred-best-label{font-family:'IBM Plex Mono',monospace;font-size:.58rem;margin-top:4px;display:flex;align-items:center;gap:4px}
+.model-pred-best-label .icon-best{width:11px;height:11px;stroke:currentColor}
+.day-badge{display:inline-flex;align-items:center;gap:5px;font-family:'IBM Plex Mono',monospace;font-size:.65rem;font-weight:700;padding:3px 10px;border-radius:100px;border:1px solid var(--border2);background:var(--surface);color:var(--text)}
+.day-badge .icon-badge{width:11px;height:11px;stroke:currentColor}
+
+/* ── Persistence notice banner ── */
+.persist-notice{display:flex;align-items:center;gap:8px;padding:8px 14px;border-radius:8px;background:rgba(64,196,255,.06);border:1px solid rgba(64,196,255,.2);font-family:'IBM Plex Mono',monospace;font-size:.65rem;color:var(--pupa);margin-bottom:16px}
+.persist-notice .icon-persist{width:14px;height:14px;stroke:currentColor;flex-shrink:0}
+
+/* Lucide inline icon util */
+.lucide{display:inline-flex;align-items:center;vertical-align:middle}
+
+/* ── Data History / Sensor Log ── */
+.dlog-filter-btn{font-family:'IBM Plex Mono',monospace;font-size:.65rem;padding:5px 13px;background:var(--surface);border:1px solid var(--border2);border-radius:8px;color:var(--muted);cursor:pointer;transition:all .18s}
+.dlog-filter-btn:hover{opacity:.8}
+.dlog-filter-btn.active-filter{background:var(--card);color:var(--text);border-color:var(--border2);font-weight:700}
+.dlog-dot{width:8px;height:8px;border-radius:50%;display:inline-block;flex-shrink:0}
+.dlog-summary-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:16px 18px;transition:background .3s,border-color .3s}
+.dlog-summary-title{font-family:'IBM Plex Mono',monospace;font-size:.62rem;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.dlog-summary-row{display:flex;gap:12px;flex-wrap:wrap}
+.dlog-summary-stat{flex:1;min-width:60px}
+.dlog-summary-label{font-family:'IBM Plex Mono',monospace;font-size:.58rem;color:var(--muted2);text-transform:uppercase}
+.dlog-summary-val{font-family:'IBM Plex Mono',monospace;font-size:1.1rem;font-weight:700;line-height:1.2}
+.act-pill{display:inline-flex;align-items:center;gap:4px;font-family:'IBM Plex Mono',monospace;font-size:.58rem;padding:2px 8px;border-radius:100px;border:1px solid;white-space:nowrap;font-weight:600}
+.act-pill.on{background:rgba(0,230,118,.1);border-color:var(--larvae);color:var(--larvae)}
+.act-pill.off{background:transparent;border-color:var(--border2);color:var(--muted)}
+.act-pill.alert{background:rgba(255,82,82,.1);border-color:var(--danger);color:var(--danger)}
+.act-pill.warn{background:rgba(255,215,64,.1);border-color:var(--warn);color:var(--warn)}
+[data-theme="light"] .act-pill.on{background:rgba(0,168,79,.1);border-color:var(--larvae);color:var(--larvae)}
+.alert-tag{display:inline-flex;align-items:center;gap:4px;font-family:'IBM Plex Mono',monospace;font-size:.58rem;padding:2px 7px;border-radius:6px;margin:1px;white-space:nowrap}
+.alert-tag.danger{background:rgba(255,82,82,.12);color:var(--danger)}
+.alert-tag.warn{background:rgba(255,215,64,.1);color:var(--warn)}
+.alert-tag.ok{background:rgba(0,230,118,.08);color:var(--larvae)}
+.dlog-cage-badge{display:inline-flex;align-items:center;gap:4px;font-family:'IBM Plex Mono',monospace;font-size:.65rem;font-weight:700;padding:3px 9px;border-radius:100px;border:1px solid}
+.dlog-cage-badge.larvae{color:var(--larvae);border-color:var(--larvae);background:rgba(0,230,118,.07)}
+.dlog-cage-badge.pupa{color:var(--pupa);border-color:var(--pupa);background:rgba(64,196,255,.07)}
+.dlog-cage-badge.adult{color:var(--adult);border-color:var(--adult);background:rgba(255,171,64,.07)}
+@media(max-width:700px){ #dlog-summary{grid-template-columns:1fr!important}}
+</style>
+</head>
+<body>
+<header class="z1">
+  <div class="wrap hdr">
+    <div class="brand">
+      <div class="brand-mark">
+        <i data-lucide="bug" style="width:22px;height:22px;stroke:#080c0b;stroke-width:2"></i>
+      </div>
+      <div>
+        <div class="brand-name">BSF<em>NEXUS</em></div>
+        <div class="brand-sub">Larvae Production Prediction System</div>
+      </div>
+    </div>
+    <div class="hdr-right">
+      <a href="/logout">
+        <button id="btn-logout" style="font-family:'IBM Plex Mono',monospace;font-size:.65rem;padding:5px 14px;background:none;border:1px solid #ff5252;color:#ff5252;border-radius:8px;cursor:pointer;display:inline-flex;align-items:center;gap:6px">
+          <i data-lucide="log-out" style="width:13px;height:13px"></i> Logout
+        </button>
+      </a>
+      <button class="theme-toggle" id="theme-toggle-btn" onclick="toggleTheme()" title="Toggle light/dark theme">
+        <i data-lucide="sun" id="theme-icon" style="width:16px;height:16px"></i>
+      </button>
+      <div class="status-chip"><div class="led" id="led"></div><span id="conn-label">Searching…</span></div>
+      <div style="position:relative">
+        <div class="cycle-chip" id="cycle-chip" onclick="toggleCycleMenu(event)" style="cursor:pointer;display:flex;align-items:center;gap:6px">
+          <i data-lucide="refresh-cw" style="width:12px;height:12px"></i>
+          Cycle — <i data-lucide="chevron-down" style="width:12px;height:12px"></i>
+        </div>
+        <div id="cycle-menu" style="display:none;position:absolute;top:calc(100% + 8px);right:0;background:var(--card);border:1px solid var(--border2);border-radius:10px;padding:6px;z-index:999;min-width:180px;box-shadow:0 8px 32px rgba(0,0,0,.3);">
+          <div onclick="confirmResetCycle()" style="padding:9px 14px;border-radius:7px;cursor:pointer;font-family:'IBM Plex Mono',monospace;font-size:.72rem;color:#ff5252;display:flex;align-items:center;gap:7px" onmouseover="this.style.background='rgba(255,82,82,.1)'" onmouseout="this.style.background='transparent'">
+            <i data-lucide="rotate-ccw" style="width:13px;height:13px"></i> Reset to Cycle 1
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="wrap z1">
+  <div class="nav-tabs">
+    <div class="ntab active" onclick="tab('realtime',this)">
+      <i data-lucide="activity" class="icon-tab"></i> Real-Time Monitoring
+    </div>
+    <div class="ntab" onclick="tab('daily',this)">
+      <i data-lucide="calendar-days" class="icon-tab"></i> Daily Input &amp; Prediction
+    </div>
+    <div class="ntab" onclick="tab('history',this)">
+      <i data-lucide="history" class="icon-tab"></i> Cycle History
+    </div>
+    <div class="ntab" onclick="tab('datalog',this)">
+      <i data-lucide="database" class="icon-tab"></i> Data History
+    </div>
+    <div class="ntab" onclick="tab('compare',this)">
+      <i data-lucide="bar-chart-2" class="icon-tab"></i> AI Model Comparison
+    </div>
+  </div>
+
+  <!-- ══ TAB 1: REAL-TIME ══ -->
+  <div class="panel active" id="panel-realtime">
+    <div class="cycle-wrap">
+      <div class="cycle-top">
+        <div class="cycle-title">BSF Life Cycle — 45-Day Overview</div>
+        <div class="day-input-row">
+          <label>Current Day:</label>
+          <input class="day-input" type="number" id="current-day" min="1" max="45" value="1" oninput="updateCycleHighlight(this.value)"/>
+        </div>
+      </div>
+      <div class="cycle-bar">
+        <div class="cseg cseg-egg"  id="seg-egg"><span><i data-lucide="egg" class="icon-seg"></i>EGG (1–4)</span></div>
+        <div class="cseg cseg-larv" id="seg-larv"><span><i data-lucide="worm" class="icon-seg"></i>LARVAE (5–24)</span></div>
+        <div class="cseg cseg-pupa" id="seg-pupae"><span><i data-lucide="shell" class="icon-seg"></i>PUPAE (25–38)</span></div>
+        <div class="cseg cseg-adlt" id="seg-adlt"><span><i data-lucide="bug" class="icon-seg"></i>ADULT (39–45)</span></div>
+      </div>
+      <div class="cycle-legend">
+        <div class="cl-item"><div class="cl-dot" style="background:#132e22"></div>Egg — Days 1–4</div>
+        <div class="cl-item"><div class="cl-dot" style="background:var(--larvae)"></div>Larvae — Days 5–24</div>
+        <div class="cl-item"><div class="cl-dot" style="background:var(--pupa)"></div>Pupae — Days 25–38</div>
+        <div class="cl-item"><div class="cl-dot" style="background:var(--adult)"></div>Adult — Days 39–45</div>
+      </div>
+    </div>
+    <div class="sh">
+      <div class="sh-left"><div class="sh-bar"></div><div class="sh-title">Live Cage Readings</div></div>
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:.68rem;color:var(--muted);display:flex;align-items:center;gap:5px">
+        <i data-lucide="refresh-cw" style="width:12px;height:12px"></i> Auto-refresh every 3s
+      </div>
+    </div>
+    <div class="stages">
+      <!-- Larvae card -->
+      <div class="scard larvae">
+        <div class="scard-glow"></div>
+        <div class="scard-head">
+          <div class="scard-name"><i data-lucide="worm" class="icon-card"></i>Larvae</div>
+          <div class="scard-days">Days 5–24</div>
+        </div>
+        <div class="sensors">
+          <div class="sbox">
+            <div class="sbox-label"><i data-lucide="thermometer" class="icon-sensor"></i>Temp</div>
+            <div class="sbox-val" id="l-temp">—<span class="sbox-unit">°C</span></div>
+          </div>
+          <div class="sbox">
+            <div class="sbox-label"><i data-lucide="droplets" class="icon-sensor"></i>Humidity</div>
+            <div class="sbox-val" id="l-hum">—<span class="sbox-unit">%</span></div>
+          </div>
+        </div>
+        <div class="actuators">
+          <span class="act-badge"><i data-lucide="wind" class="icon-act"></i>DC Fan</span>
+          <span class="act-badge"><i data-lucide="flame" class="icon-act"></i>Heater</span>
+          <span class="act-badge"><i data-lucide="cloud-drizzle" class="icon-act"></i>Humidifier</span>
+        </div>
+        <div class="scard-ts" id="l-ts">No data yet</div>
+      </div>
+      <!-- Pupa card -->
+      <div class="scard pupa">
+        <div class="scard-glow"></div>
+        <div class="scard-head">
+          <div class="scard-name"><i data-lucide="shell" class="icon-card"></i>Pupae</div>
+          <div class="scard-days">Days 25–38</div>
+        </div>
+        <div class="sensors">
+          <div class="sbox">
+            <div class="sbox-label"><i data-lucide="thermometer" class="icon-sensor"></i>Temp</div>
+            <div class="sbox-val" id="p-temp">—<span class="sbox-unit">°C</span></div>
+          </div>
+          <div class="sbox">
+            <div class="sbox-label"><i data-lucide="droplets" class="icon-sensor"></i>Humidity</div>
+            <div class="sbox-val" id="p-hum">—<span class="sbox-unit">%</span></div>
+          </div>
+        </div>
+        <div class="actuators">
+          <span class="act-badge"><i data-lucide="wind" class="icon-act"></i>DC Fan</span>
+          <span class="act-badge"><i data-lucide="flame" class="icon-act"></i>Heater</span>
+          <span class="act-badge"><i data-lucide="cloud-drizzle" class="icon-act"></i>Humidifier</span>
+        </div>
+        <div class="scard-ts" id="p-ts">No data yet</div>
+      </div>
+      <!-- Adult card -->
+      <div class="scard adult">
+        <div class="scard-glow"></div>
+        <div class="scard-head">
+          <div class="scard-name"><i data-lucide="bug" class="icon-card"></i>Adult</div>
+          <div class="scard-days">Days 39–45</div>
+        </div>
+        <div class="sensors">
+          <div class="sbox">
+            <div class="sbox-label"><i data-lucide="thermometer" class="icon-sensor"></i>Temp</div>
+            <div class="sbox-val" id="a-temp">—<span class="sbox-unit">°C</span></div>
+          </div>
+          <div class="sbox">
+            <div class="sbox-label"><i data-lucide="droplets" class="icon-sensor"></i>Humidity</div>
+            <div class="sbox-val" id="a-hum">—<span class="sbox-unit">%</span></div>
+          </div>
+          <div class="sbox">
+            <div class="sbox-label"><i data-lucide="sun" class="icon-sensor"></i>Light</div>
+            <div class="sbox-val" id="a-lux">—<span class="sbox-unit">lx</span></div>
+          </div>
+        </div>
+        <div class="actuators">
+          <span class="act-badge"><i data-lucide="wind" class="icon-act"></i>DC Fan</span>
+          <span class="act-badge"><i data-lucide="flame" class="icon-act"></i>Heater</span>
+          <span class="act-badge"><i data-lucide="lightbulb" class="icon-act"></i>LED Bulb</span>
+          <span class="act-badge"><i data-lucide="cloud-drizzle" class="icon-act"></i>Humidifier</span>
+        </div>
+        <div class="scard-ts" id="a-ts">No data yet</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ TAB 2: DAILY INPUT ══ -->
+  <div class="panel" id="panel-daily">
+    <div class="persist-notice">
+      <i data-lucide="hard-drive" class="icon-persist"></i>
+      Your daily entries are saved locally and sync with the server — they persist across page refreshes.
+    </div>
+
+    <!-- Prediction banner -->
+    <div id="daily-pred-banner" style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px 28px;margin-bottom:24px;transition:background .3s,border-color .3s">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:.7rem;color:var(--muted);margin-bottom:12px;text-transform:uppercase;letter-spacing:.5px;display:flex;align-items:center;gap:6px">
+        <i data-lucide="sparkles" style="width:13px;height:13px"></i> All Model Predictions
+      </div>
+      <div class="model-pred-cards" id="banner-pred-cards">
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:.75rem;color:var(--muted2)">No daily data yet — add Day 1 to see predictions.</div>
+      </div>
+      <div id="banner-conf-row" style="margin-top:10px;font-family:'IBM Plex Mono',monospace;font-size:.65rem;color:var(--muted)"></div>
+    </div>
+
+    <!-- Progress bar -->
+    <div class="prog-wrap" id="prog-wrap" style="display:none">
+      <div class="prog-top">
+        <span>Cycle Progress</span>
+        <span id="prog-label">Day 0 / 45</span>
+      </div>
+      <div class="prog-track"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
+      <div class="stage-mini-bar">
+        <div class="smb-seg smb-egg"  id="smb-egg"><i data-lucide="egg" class="icon-smb"></i><span>Egg (1–4)</span></div>
+        <div class="smb-seg smb-larv" id="smb-larv"><i data-lucide="worm" class="icon-smb"></i><span>Larvae (5–24)</span></div>
+        <div class="smb-seg smb-pupa" id="smb-pupa"><i data-lucide="shell" class="icon-smb"></i><span>Pupae (25–38)</span></div>
+        <div class="smb-seg smb-adlt" id="smb-adlt"><i data-lucide="bug" class="icon-smb"></i><span>Adult (39–45)</span></div>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:340px 1fr;gap:22px;align-items:start">
+    <div style="display:contents">
+      <!-- Form -->
+      <div class="form-card">
+        <div class="form-title">
+          <i data-lucide="calendar-plus" class="icon-form"></i> Add / Update Day
+        </div>
+        <div class="fg">
+          <label>Day Number (1–45)</label>
+          <input type="number" id="d-day" min="1" max="45" placeholder="e.g. 1" oninput="onDayInput()"/>
+        </div>
+        <div class="stage-hint-box" id="stage-hint-box">
+          <i data-lucide="info" class="icon-hint" id="stage-hint-lucide"></i>
+          <span id="stage-hint-text">Enter a day number (1–45) to see the stage</span>
+        </div>
+        <div class="fg">
+          <label>Average Temperature (°C)</label>
+          <input type="number" id="d-temp" step="0.1" placeholder="e.g. 28.5"/>
+        </div>
+        <div class="fg">
+          <label>Average Humidity (%)</label>
+          <input type="number" id="d-hum" step="0.1" placeholder="e.g. 74.0"/>
+        </div>
+        <div class="fg" id="d-feed-group">
+          <label>Feed Amount (g) <span style="color:var(--muted2)">— larvae stage</span></label>
+          <input type="number" id="d-feed" step="0.1" placeholder="e.g. 100"/>
+        </div>
+        <div class="fg" id="d-lux-group" style="display:none">
+          <label>Average Light (lux) <span style="color:var(--muted2)">— adult stage</span></label>
+          <input type="number" id="d-lux" step="1" placeholder="e.g. 650"/>
+        </div>
+        <button class="btn btn-primary" onclick="submitDay()">
+          <i data-lucide="save" class="icon-btn"></i> Save Day &amp; Predict
+        </button>
+        <button class="btn btn-secondary" onclick="autoFillDay()">
+          <i data-lucide="radio" class="icon-btn"></i> Auto-fill from Live Sensors
+        </button>
+        <div class="divider"></div>
+        <div class="finish-box" id="finish-box" style="display:none">
+          <div class="finish-title">
+            <i data-lucide="flag" class="icon-finish"></i> Finish This Cycle
+          </div>
+          <p style="font-family:'IBM Plex Mono',monospace;font-size:.68rem;color:var(--muted);margin-bottom:12px">Record actual yield to close cycle and start a new one.</p>
+          <div class="finish-row">
+            <div class="fg" style="flex:1;margin-bottom:0">
+              <label>Actual Yield (g)</label>
+              <input type="number" id="actual-yield" step="0.1" placeholder="e.g. 210"/>
+            </div>
+            <button class="btn btn-danger" style="width:auto;padding:9px 16px;margin-top:0" onclick="finishCycle()">
+              <i data-lucide="check-circle" class="icon-btn"></i> Finish Cycle
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Table + chart -->
+      <div>
+        <div class="sh">
+          <div class="sh-left"><div class="sh-bar"></div><div class="sh-title">This Cycle — Daily Records</div></div>
+          <div id="day-count" style="font-family:'IBM Plex Mono',monospace;font-size:.68rem;color:var(--muted)"></div>
+        </div>
+        <div class="table-wrap">
+          <div class="table-scroll">
+            <table>
+              <thead><tr>
+                <th>Day</th><th>Stage</th><th>Temp</th><th>Humidity</th>
+                <th>Feed (g)</th><th>Light (lx)</th><th>Best Pred</th><th>Confidence</th><th></th>
+              </tr></thead>
+              <tbody id="day-tbody">
+                <tr><td colspan="9"><div class="empty-state">
+                  <div class="empty-icon"><i data-lucide="clipboard-list"></i></div>
+                  No days recorded yet.
+                </div></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-head">
+            <div class="chart-title">
+              <i data-lucide="trending-up" class="icon-chart"></i> All Model Predictions per Day
+            </div>
+            <div style="display:flex;gap:12px;flex-wrap:wrap">
+              <div style="display:flex;align-items:center;gap:5px;font-family:'IBM Plex Mono',monospace;font-size:.62rem;color:#00e676"><div style="width:18px;height:2px;background:#00e676;border-radius:2px"></div>LSTM</div>
+              <div style="display:flex;align-items:center;gap:5px;font-family:'IBM Plex Mono',monospace;font-size:.62rem;color:#40c4ff"><div style="width:18px;height:2px;background:#40c4ff;border-radius:2px"></div>ANN</div>
+              <div style="display:flex;align-items:center;gap:5px;font-family:'IBM Plex Mono',monospace;font-size:.62rem;color:#ffab40"><div style="width:18px;height:2px;background:#ffab40;border-radius:2px"></div>RF</div>
+            </div>
+          </div>
+          <canvas id="chart-daily-pred"></canvas>
+        </div>
+      </div>
+    </div>
+    </div>
+  </div>
+
+  <!-- ══ TAB 3: CYCLE HISTORY ══ -->
+  <div class="panel" id="panel-history">
+    <div class="sh">
+      <div class="sh-left"><div class="sh-bar"></div><div class="sh-title">Finished Cycles</div></div>
+      <button onclick="loadHistory()" style="font-family:'IBM Plex Mono',monospace;font-size:.7rem;padding:6px 14px;background:var(--surface);border:1px solid var(--border2);border-radius:8px;color:var(--muted);cursor:pointer;transition:background .3s,border-color .3s;display:inline-flex;align-items:center;gap:6px">
+        <i data-lucide="refresh-cw" style="width:13px;height:13px"></i> Refresh
+      </button>
+    </div>
+    <div id="history-content">
+      <div class="empty-state">
+        <div class="empty-icon"><i data-lucide="trophy"></i></div>
+        No finished cycles yet.<br>Complete your first cycle to see history here.
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ TAB 4: AI MODEL COMPARISON ══ -->
+  <div class="panel" id="panel-compare">
+    <div class="sh">
+      <div class="sh-left"><div class="sh-bar"></div><div class="sh-title">AI Model Comparison</div></div>
+      <button onclick="loadComparison()" style="font-family:'IBM Plex Mono',monospace;font-size:.7rem;padding:6px 14px;background:var(--surface);border:1px solid var(--border2);border-radius:8px;color:var(--muted);cursor:pointer;transition:background .3s,border-color .3s;display:inline-flex;align-items:center;gap:6px">
+        <i data-lucide="refresh-cw" style="width:13px;height:13px"></i> Refresh
+      </button>
+    </div>
+    <div id="compare-cards" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:24px;"></div>
+    <div class="table-wrap" style="margin-bottom:24px">
+      <div class="table-scroll">
+        <table>
+          <thead><tr>
+            <th>Cycle</th><th>Actual</th><th>Model</th><th>Best</th>
+            <th>Train R²</th><th style="display:none">Test R²</th><th>MAE (g)</th><th>RMSE (g)</th><th>MAPE</th><th>Predicted</th><th>Epochs</th>
+          </tr></thead>
+          <tbody id="compare-tbody">
+            <tr><td colspan="11"><div class="empty-state">
+              <div class="empty-icon"><i data-lucide="bar-chart-2"></i></div>
+              Complete a cycle or add daily data to see AI model comparison.
+            </div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="charts-grid" style="grid-template-columns:1fr 1fr;">
+      <div class="chart-card">
+        <div class="chart-head">
+          <div class="chart-title"><i data-lucide="trending-up" class="icon-chart"></i> Test R² per Cycle</div>
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:.62rem;color:var(--muted)">Higher = better</div>
+        </div>
+        <canvas id="chart-r2"></canvas>
+      </div>
+      <div class="chart-card">
+        <div class="chart-head">
+          <div class="chart-title"><i data-lucide="trending-down" class="icon-chart"></i> MAE per Cycle (g)</div>
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:.62rem;color:var(--muted)">Lower = more accurate</div>
+        </div>
+        <canvas id="chart-mae"></canvas>
+      </div>
+      <div class="chart-card">
+        <div class="chart-head">
+          <div class="chart-title"><i data-lucide="trending-down" class="icon-chart"></i> RMSE per Cycle (g)</div>
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:.62rem;color:var(--muted)">Lower = better</div>
+        </div>
+        <canvas id="chart-rmse"></canvas>
+      </div>
+      <div class="chart-card">
+        <div class="chart-head">
+          <div class="chart-title"><i data-lucide="trending-down" class="icon-chart"></i> MAPE per Cycle (%)</div>
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:.62rem;color:var(--muted)">Lower = better</div>
+        </div>
+        <canvas id="chart-mape"></canvas>
+      </div>
+      <div class="chart-card" style="grid-column:1/-1">
+        <div class="chart-head">
+          <div class="chart-title"><i data-lucide="scale" class="icon-chart"></i> Actual vs Predicted Yield</div>
+        </div>
+        <canvas id="chart-yield-compare"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ TAB 5: DATA HISTORY ══ -->
+  <div class="panel" id="panel-datalog">
+    <div class="sh">
+      <div class="sh-left"><div class="sh-bar"></div><div class="sh-title">Sensor Data History</div></div>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:.68rem;color:var(--muted);display:flex;align-items:center;gap:5px">
+          <i data-lucide="clock" style="width:12px;height:12px"></i> Logged every 2 minutes
+        </div>
+        <div style="display:flex;gap:6px">
+          <button onclick="filterDataLog('all')" id="dlog-filter-all" class="dlog-filter-btn active-filter">All Cages</button>
+          <button onclick="filterDataLog('larvae')" id="dlog-filter-larvae" class="dlog-filter-btn" style="color:var(--larvae);border-color:var(--larvae)">Larvae</button>
+          <button onclick="filterDataLog('pupa')" id="dlog-filter-pupa" class="dlog-filter-btn" style="color:var(--pupa);border-color:var(--pupa)">Pupae</button>
+          <button onclick="filterDataLog('adult')" id="dlog-filter-adult" class="dlog-filter-btn" style="color:var(--adult);border-color:var(--adult)">Adult</button>
+        </div>
+        <button onclick="clearDataLog()" style="font-family:'IBM Plex Mono',monospace;font-size:.7rem;padding:6px 14px;background:none;border:1px solid var(--danger);border-radius:8px;color:var(--danger);cursor:pointer;display:inline-flex;align-items:center;gap:5px">
+          <i data-lucide="trash-2" style="width:12px;height:12px"></i> Clear Log
+        </button>
+      </div>
+    </div>
+
+    <!-- Summary strips -->
+    <div id="dlog-summary" style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px"></div>
+
+    <!-- Actuator legend -->
+    <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:16px;font-family:'IBM Plex Mono',monospace;font-size:.64rem;color:var(--muted);align-items:center">
+      <span style="font-weight:700;color:var(--text)">Actuator Status:</span>
+      <span style="display:flex;align-items:center;gap:4px"><span class="dlog-dot" style="background:var(--larvae)"></span> Active / ON</span>
+      <span style="display:flex;align-items:center;gap:4px"><span class="dlog-dot" style="background:var(--muted2)"></span> Normal / OFF</span>
+      <span style="display:flex;align-items:center;gap:4px"><span class="dlog-dot" style="background:var(--danger)"></span> Threshold Alert</span>
+      <span style="display:flex;align-items:center;gap:4px"><span class="dlog-dot" style="background:var(--warn)"></span> Warning</span>
+    </div>
+
+    <div class="table-wrap">
+      <div class="table-scroll" style="max-height:520px">
+        <table>
+          <thead>
+            <tr>
+              <th style="min-width:145px">Timestamp</th>
+              <th>Cage</th>
+              <th>Temp</th>
+              <th>Humidity</th>
+              <th>Light (lx)</th>
+              <th style="min-width:280px">Actuator Status</th>
+              <th style="min-width:160px">Alerts</th>
+            </tr>
+          </thead>
+          <tbody id="dlog-tbody">
+            <tr><td colspan="7">
+              <div class="empty-state">
+                <div class="empty-icon"><i data-lucide="database"></i></div>
+                No sensor data logged yet.<br>Data will appear here every 2 minutes once sensors are connected.
+              </div>
+            </td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div id="dlog-count" style="font-family:'IBM Plex Mono',monospace;font-size:.65rem;color:var(--muted);text-align:right;margin-top:8px"></div>
+  </div>
+
+</div>
+<div class="toast" id="toast"><i data-lucide="check-circle" class="icon-toast" id="toast-icon"></i><span id="toast-text"></span></div>
+
+<script>
+// ══════════════════════════════════════════════════════
+//  LUCIDE ICON HELPERS
+// ══════════════════════════════════════════════════════
+function renderIcons() { lucide.createIcons(); }
+
+function lucideIcon(name, attrs = {}) {
+  const size  = attrs.size || 14;
+  const cls   = attrs.class || '';
+  const style = attrs.style || '';
+  const tmp = document.createElement('i');
+  tmp.setAttribute('data-lucide', name);
+  tmp.style.width  = size + 'px';
+  tmp.style.height = size + 'px';
+  tmp.style.display = 'inline-flex';
+  tmp.style.verticalAlign = 'middle';
+  tmp.style.flexShrink = '0';
+  if (cls) tmp.className = cls;
+  if (style) tmp.setAttribute('style', tmp.getAttribute('style') + ';' + style);
+  document.body.appendChild(tmp);
+  lucide.createIcons({ nodes: [tmp] });
+  const html = tmp.outerHTML;
+  tmp.remove();
+  return html;
+}
+
+const STAGE_LUCIDE = { egg: 'egg', larvae: 'worm', pupa: 'shell', adult: 'bug' };
+function stageIconHtml(stage, size = 13) { return lucideIcon(STAGE_LUCIDE[stage] || 'circle', { size }); }
+
+// ══════════════════════════════════════════════════════
+//  CONSTANTS
+// ══════════════════════════════════════════════════════
+const MODEL_COLORS = {LSTM:'#00e676', ANN:'#40c4ff', RandomForest:'#ffab40'};
+const MODEL_ICONS  = {LSTM:'Long Short-Term Memory (LSTM)', ANN:'Artificial Neural Network (ANN)', RandomForest:'Random Forest (RF)'};
+const MODEL_LUCIDE = {LSTM:'cpu', ANN:'network', RandomForest:'trees'};
+const MODEL_NAMES  = ['LSTM','ANN','RandomForest'];
+const LS_CYCLE_KEY = 'bsfnexus_cycle_cache';
+const LS_CYCLE_ID  = 'bsfnexus_cycle_id';
+
+let chartDailyPred = null;
+let currentCycleId = lsGetCycleId();
+
+// ══════════════════════════════════════════════════════
+//  LOCAL STORAGE HELPERS
+// ══════════════════════════════════════════════════════
+function lsGetDays(cycleId) {
+  try { const raw = localStorage.getItem(LS_CYCLE_KEY); if (!raw) return []; const obj = JSON.parse(raw); return (obj[cycleId] || []); } catch(e) { return []; }
+}
+function lsSaveDay(cycleId, entry) {
+  try { const raw = localStorage.getItem(LS_CYCLE_KEY); const obj = raw ? JSON.parse(raw) : {}; if (!obj[cycleId]) obj[cycleId] = []; const dayNum = entry.day || entry.week; const idx = obj[cycleId].findIndex(e => (e.day || e.week) === dayNum); if (idx >= 0) obj[cycleId][idx] = entry; else obj[cycleId].push(entry); localStorage.setItem(LS_CYCLE_KEY, JSON.stringify(obj)); } catch(e) {}
+}
+function lsDeleteDay(cycleId, dayNum) {
+  try { const raw = localStorage.getItem(LS_CYCLE_KEY); if (!raw) return; const obj = JSON.parse(raw); if (obj[cycleId]) obj[cycleId] = obj[cycleId].filter(e => (e.day || e.week) !== dayNum); localStorage.setItem(LS_CYCLE_KEY, JSON.stringify(obj)); } catch(e) {}
+}
+function lsClearCycle(cycleId) {
+  try { const raw = localStorage.getItem(LS_CYCLE_KEY); if (!raw) return; const obj = JSON.parse(raw); delete obj[cycleId]; localStorage.setItem(LS_CYCLE_KEY, JSON.stringify(obj)); } catch(e) {}
+}
+function lsSaveCycleId(id) { try { localStorage.setItem(LS_CYCLE_ID, String(id)); } catch(e) {} }
+function lsGetCycleId() { try { return parseInt(localStorage.getItem(LS_CYCLE_ID)) || 1; } catch(e) { return 1; } }
+
+// ══════════════════════════════════════════════════════
+//  THEME TOGGLE
+// ══════════════════════════════════════════════════════
+let currentTheme = localStorage.getItem('bsf-theme') || 'dark';
+function applyTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+  const btn = document.getElementById('theme-toggle-btn');
+  const ico = btn.querySelector('i[data-lucide]');
+  if (ico) {
+    ico.setAttribute('data-lucide', theme === 'dark' ? 'sun' : 'moon');
+    if (typeof lucide !== 'undefined') lucide.createIcons({ nodes: [ico] });
+  }
+  btn.title = theme === 'dark' ? 'Switch to Light Theme' : 'Switch to Dark Theme';
+  localStorage.setItem('bsf-theme', theme);
+  currentTheme = theme;
+}
+function toggleTheme() { applyTheme(currentTheme === 'dark' ? 'light' : 'dark'); }
+
+// ══════════════════════════════════════════════════════
+//  TABS
+// ══════════════════════════════════════════════════════
+function tab(id, el) {
+  document.querySelectorAll('.ntab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('panel-' + id).classList.add('active');
+  if (id === 'history') loadHistory();
+  if (id === 'compare') loadComparison();
+  if (id === 'datalog') renderDataLog();
+}
+
+// ══════════════════════════════════════════════════════
+//  TOAST
+// ══════════════════════════════════════════════════════
+let toastTimer;
+function toast(msg, type = 'ok') {
+  const t   = document.getElementById('toast');
+  const ico = document.getElementById('toast-icon');
+  const txt = document.getElementById('toast-text');
+  const iconMap = { ok: 'check-circle', err: 'x-circle', info: 'info' };
+  txt.textContent = msg;
+  t.className = 'toast show ' + type;
+  if (ico) { ico.setAttribute('data-lucide', iconMap[type] || 'info'); lucide.createIcons({ nodes: [ico] }); }
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 3500);
+}
+
+// ══════════════════════════════════════════════════════
+//  STAGE HELPERS — updated day boundaries
+// ══════════════════════════════════════════════════════
+function stageFromDay(d) {
+  if (d <= 4)  return 'egg';
+  if (d <= 24) return 'larvae';
+  if (d <= 38) return 'pupa';
+  return 'adult';
+}
+function stageLabel(s) {
+  return {
+    egg:    'Egg (Day 1–4)',
+    larvae: 'Larvae (Day 5–24)',
+    pupa:   'Pupae (Day 25–38)',
+    adult:  'Adult (Day 39–45)'
+  }[s] || s;
+}
+
+// ══════════════════════════════════════════════════════
+//  CYCLE BAR (realtime tab)
+// ══════════════════════════════════════════════════════
+function updateCycleHighlight(day) {
+  day = parseInt(day) || 1;
+  ['seg-egg','seg-larv','seg-pupa','seg-adlt'].forEach(s => document.getElementById(s).classList.remove('current'));
+  if (day <= 4)       document.getElementById('seg-egg').classList.add('current');
+  else if (day <= 24) document.getElementById('seg-larv').classList.add('current');
+  else if (day <= 38) document.getElementById('seg-pupa').classList.add('current');
+  else                document.getElementById('seg-adlt').classList.add('current');
+}
+updateCycleHighlight(1);
+
+// ══════════════════════════════════════════════════════
+//  SENSORS
+// ══════════════════════════════════════════════════════
+function setVal(id, val, unit, status) {
+  const el = document.getElementById(id); if (!el) return;
+  const u = el.querySelector('.sbox-unit');
+  if (val === null || val === undefined) { el.childNodes[0].textContent = '—'; if (u) u.textContent = ''; el.className = 'sbox-val'; }
+  else { el.childNodes[0].textContent = val; if (u) u.textContent = unit; el.className = 'sbox-val ' + (status || ''); }
+}
+function tempStatus(t) { if (t === null) return ''; if (t >= 26 && t <= 32) return 'good'; if (t < 22 || t > 36) return 'bad'; return 'warn'; }
+function humStatus(h)  { if (h === null) return ''; if (h >= 60 && h <= 80) return 'good'; if (h < 50 || h > 90) return 'bad'; return 'warn'; }
+let latestSensors = {};
+
+async function pollSensors() {
+  try {
+    const r = await fetch('https://dropbox-overprice-amiable.ngrok-free.app/api/sensors');
+    const j = await r.json();
+    const s = j.sensors, sr = j.serial;
+    latestSensors = s;
+    const led = document.getElementById('led'), lbl = document.getElementById('conn-label');
+    if (sr.connected) { led.classList.add('on'); lbl.textContent = 'Arduino · ' + (sr.port || ''); }
+    else { led.classList.remove('on'); lbl.textContent = sr.error || 'Disconnected'; }
+    setVal('l-temp', s.larvae.temp, '°C', tempStatus(s.larvae.temp));
+    setVal('l-hum',  s.larvae.humidity, '%', humStatus(s.larvae.humidity));
+    setVal('p-temp', s.pupa.temp, '°C', tempStatus(s.pupa.temp));
+    setVal('p-hum',  s.pupa.humidity, '%', humStatus(s.pupa.humidity));
+    setVal('a-temp', s.adult.temp, '°C', tempStatus(s.adult.temp));
+    setVal('a-hum',  s.adult.humidity, '%', humStatus(s.adult.humidity));
+    setVal('a-lux',  s.adult.light, 'lx', '');
+    ['l','p','a'].forEach((k,i) => {
+      const st = ['larvae','pupa','adult'][i];
+      const ts = s[st].timestamp;
+      const el = document.getElementById(k + '-ts');
+      if (el) el.textContent = ts ? 'Last update: ' + ts : 'No data yet';
+    });
+  } catch(e) {}
+}
+pollSensors();
+setInterval(pollSensors, 3000);
+
+// ══════════════════════════════════════════════════════
+//  DAY INPUT HINT
+// ══════════════════════════════════════════════════════
+function onDayInput() {
+  const d = parseInt(document.getElementById('d-day').value);
+  const hintIcon = document.getElementById('stage-hint-lucide');
+  const hintText = document.getElementById('stage-hint-text');
+  const feedGrp  = document.getElementById('d-feed-group');
+  const luxGrp   = document.getElementById('d-lux-group');
+  if (!d || d < 1 || d > 45) {
+    hintIcon.setAttribute('data-lucide', 'info');
+    lucide.createIcons({ nodes: [hintIcon] });
+    hintText.textContent = 'Enter a day number (1–45) to see the stage';
+    feedGrp.style.display = '';
+    luxGrp.style.display  = 'none';
+    return;
+  }
+  const stage = stageFromDay(d);
+  hintIcon.setAttribute('data-lucide', STAGE_LUCIDE[stage] || 'circle');
+  lucide.createIcons({ nodes: [hintIcon] });
+  hintText.textContent = 'Day ' + d + ' → ' + stageLabel(stage);
+  feedGrp.style.display = stage === 'larvae' ? '' : 'none';
+  luxGrp.style.display  = stage === 'adult'  ? '' : 'none';
+}
+
+// ══════════════════════════════════════════════════════
+//  RENDER MODEL CARDS
+// ══════════════════════════════════════════════════════
+function renderModelCards(allPreds, bestModel, container) {
+  if (!allPreds || !Object.keys(allPreds).length) return;
+  container.innerHTML = MODEL_NAMES.map(m => {
+    const mp     = allPreds[m] || {};
+    const isBest = m === bestModel;
+    const color  = MODEL_COLORS[m];
+    const pred   = mp.predicted_g !== undefined && mp.predicted_g !== null ? mp.predicted_g + 'g' : '—';
+    const r2str  = mp.r2 !== undefined && mp.r2 !== null ? 'R²: ' + mp.r2 : '';
+    return `<div class="model-pred-card ${isBest ? 'best' : ''}" style="border-color:${isBest ? color : 'var(--border)'};">
+        <div class="model-pred-name" style="color:${color}">
+          <i data-lucide="${MODEL_LUCIDE[m]}" style="width:12px;height:12px"></i>
+          ${MODEL_ICONS[m]} ${isBest ? '<i data-lucide="trophy" style="width:11px;height:11px;margin-left:2px"></i>' : ''}
+        </div>
+        <div class="model-pred-val" style="color:${color}">${pred}</div>
+        <div class="model-pred-meta">${r2str}</div>
+        ${isBest ? `<div class="model-pred-best-label" style="color:${color}"><i data-lucide="arrow-left" style="width:11px;height:11px"></i> best model</div>` : ''}
+      </div>`;
+  }).join('');
+  container.querySelectorAll('i[data-lucide]').forEach(el => lucide.createIcons({ nodes: [el] }));
+}
+
+// ══════════════════════════════════════════════════════
+//  LOAD CYCLE
+// ══════════════════════════════════════════════════════
+async function loadCycle() {
+  try {
+    const r = await fetch('https://dropbox-overprice-amiable.ngrok-free.app/api/cycle');
+    const d = await r.json();
+    currentCycleId = d.current_cycle || 1;
+    lsSaveCycleId(currentCycleId);
+    document.getElementById('cycle-chip').innerHTML =
+      `<i data-lucide="refresh-cw" style="width:12px;height:12px"></i> Cycle ${currentCycleId} <i data-lucide="chevron-down" style="width:12px;height:12px"></i>`;
+    document.getElementById('cycle-chip').querySelectorAll('i[data-lucide]').forEach(el => lucide.createIcons({ nodes: [el] }));
+
+    const serverDays = d.cycle ? (d.cycle.days || d.cycle.weeks || []) : [];
+    const localDays  = lsGetDays(currentCycleId);
+    const merged = [...serverDays];
+    localDays.forEach(le => { const dn = le.day || le.week; if (!merged.find(e => (e.day || e.week) === dn)) merged.push(le); });
+    localDays.forEach(le => lsSaveDay(currentCycleId, le));
+    serverDays.forEach(se => lsSaveDay(currentCycleId, se));
+    const days = merged;
+    const pred = d.latest_prediction;
+
+    const bannerCards = document.getElementById('banner-pred-cards');
+    const bannerConf  = document.getElementById('banner-conf-row');
+    if (pred && pred.all_predictions) {
+      renderModelCards(pred.all_predictions, pred.best_model, bannerCards);
+      const confColors = {low:'var(--danger)',medium:'var(--warn)','medium-high':'var(--pupa)',high:'var(--larvae)'};
+      const col = confColors[pred.confidence] || 'var(--muted)';
+      bannerConf.innerHTML = `Confidence: <span style="color:${col}">${pred.confidence || 'low'}</span> &nbsp;|&nbsp; Best model: <span style="color:${MODEL_COLORS[pred.best_model] || 'var(--larvae)'}">${pred.best_model || '—'}</span>`;
+    } else {
+      const lsPred = deriveLocalPrediction(days);
+      if (lsPred) {
+        renderModelCards(lsPred.all_predictions, lsPred.best_model, bannerCards);
+        bannerConf.innerHTML = `<span style="color:var(--muted2)">Locally estimated — save more days for server predictions</span>`;
+      } else {
+        bannerCards.innerHTML = '<div style="font-family:\'IBM Plex Mono\',monospace;font-size:.75rem;color:var(--muted2)">No daily data yet — add Day 1 to see predictions.</div>';
+        bannerConf.innerHTML = '';
+      }
+    }
+
+    const pw = document.getElementById('prog-wrap');
+    if (days.length > 0) {
+      pw.style.display = '';
+      const maxDay = Math.max(...days.map(x => x.day || x.week || 1));
+      const pct = Math.min(100, Math.round((maxDay / 45) * 100));
+      document.getElementById('prog-fill').style.width = pct + '%';
+      document.getElementById('prog-label').textContent = 'Day ' + maxDay + ' / 45';
+      const curStage = stageFromDay(maxDay);
+      ['smb-egg','smb-larv','smb-pupa','smb-adlt'].forEach(id => document.getElementById(id).classList.remove('active-stage'));
+      const segMap = {egg:'smb-egg', larvae:'smb-larv', pupa:'smb-pupa', adult:'smb-adlt'};
+      if (segMap[curStage]) document.getElementById(segMap[curStage]).classList.add('active-stage');
+    } else {
+      pw.style.display = 'none';
+    }
+
+    document.getElementById('day-count').textContent = days.length + ' day' + (days.length === 1 ? '' : 's') + ' recorded';
+
+    const tbody = document.getElementById('day-tbody');
+    if (!days.length) {
+      tbody.innerHTML = '<tr><td colspan="9"><div class="empty-state"><div class="empty-icon"><i data-lucide="clipboard-list"></i></div>No days recorded yet.</div></td></tr>';
+    } else {
+      const sorted = [...days].sort((a, b) => (a.day || a.week || 0) - (b.day || b.week || 0));
+      tbody.innerHTML = sorted.map(entry => {
+        const dayNum  = entry.day || entry.week || '?';
+        const stage   = entry.stage || stageFromDay(dayNum);
+        const lIcon   = STAGE_LUCIDE[stage] || 'circle';
+        const feedStr = entry.feed_g !== null && entry.feed_g !== undefined ? entry.feed_g + 'g' : '<span style="color:var(--muted2)">—</span>';
+        const luxStr  = entry.avg_light_lux !== null && entry.avg_light_lux !== undefined ? entry.avg_light_lux + ' lx' : '<span style="color:var(--muted2)">—</span>';
+        const predStr = entry.predicted_g !== undefined ? entry.predicted_g + 'g' : '—';
+        const confStr = entry.confidence ? `<span class="conf-badge conf-${entry.confidence.replace('-', '')}">${entry.confidence}</span>` : '—';
+        return `<tr>
+          <td class="td-day"><span class="day-badge"><i data-lucide="${lIcon}" style="width:11px;height:11px"></i> Day ${dayNum}</span></td>
+          <td><span style="font-size:.7rem;padding:2px 8px;border-radius:100px;background:var(--surface);border:1px solid var(--border2);display:inline-flex;align-items:center;gap:4px">
+            <i data-lucide="${lIcon}" style="width:10px;height:10px"></i> ${stage}
+          </span></td>
+          <td>${entry.avg_temp}°C</td>
+          <td>${entry.avg_humidity}%</td>
+          <td>${feedStr}</td>
+          <td>${luxStr}</td>
+          <td class="td-pred">${predStr}</td>
+          <td>${confStr}</td>
+          <td><button class="btn-danger-sm" onclick="deleteDay(${dayNum})"><i data-lucide="x" class="icon-del"></i></button></td>
+        </tr>`;
+      }).join('');
+    }
+    tbody.querySelectorAll('i[data-lucide]').forEach(el => lucide.createIcons({ nodes: [el] }));
+
+    document.getElementById('finish-box').style.display = days.length >= 10 ? '' : 'none';
+
+    if (chartDailyPred) chartDailyPred.destroy();
+    if (days.length > 0) {
+      const sorted = [...days].sort((a, b) => (a.day || a.week || 0) - (b.day || b.week || 0));
+      const labels  = sorted.map(entry => 'Day ' + (entry.day || entry.week));
+      chartDailyPred = new Chart(document.getElementById('chart-daily-pred'), {
+        type: 'line',
+        data: {
+          labels,
+          datasets: MODEL_NAMES.map(m => ({
+            label: m,
+            data: sorted.map(entry => { const ap = entry.all_predictions || {}; return ap[m]?.predicted_g ?? null; }),
+            borderColor: MODEL_COLORS[m],
+            backgroundColor: 'transparent',
+            borderWidth: 2,
+            tension: 0,
+            pointRadius: 5,
+            pointHoverRadius: 7,
+            pointBackgroundColor: '#ffffff',
+            pointBorderColor: MODEL_COLORS[m],
+            pointBorderWidth: 2,
+            fill: false,
+            spanGaps: true,
+          }))
+        },
+        options: {
+          responsive: true,
+          interaction: { mode: 'index', intersect: false },
+          plugins: {
+            legend: {
+              display: true, position: 'top',
+              labels: { color: 'var(--text)', font: { family: 'IBM Plex Mono', size: 11 }, usePointStyle: true, pointStyle: 'circle', padding: 24 }
+            },
+            tooltip: {
+              backgroundColor: '#111c17', borderColor: '#1c3326', borderWidth: 1,
+              titleColor: '#e0f2e9', bodyColor: '#4a7060',
+              titleFont: { family: 'IBM Plex Mono', size: 11 },
+              bodyFont:  { family: 'IBM Plex Mono', size: 11 },
+              callbacks: { label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.y !== null ? ctx.parsed.y + 'g' : '—'}` }
+            }
+          },
+          scales: {
+            x: { grid: { color: 'rgba(255,255,255,0.05)' }, border: { display: false }, ticks: { color: 'var(--muted)', font: { family: 'IBM Plex Mono', size: 10 } } },
+            y: {
+              grid: { color: 'rgba(255,255,255,0.05)' }, border: { display: false },
+              ticks: { color: 'var(--muted)', font: { family: 'IBM Plex Mono', size: 10 }, callback: val => val + 'g' },
+              beginAtZero: true,
+              suggestedMax: Math.max(...sorted.flatMap(entry => { const ap = entry.all_predictions || {}; return MODEL_NAMES.map(m => ap[m]?.predicted_g ?? 0); })) * 1.2,
+            }
+          },
+          layout: { padding: { right: 20, top: 16 } }
+        },
+        plugins: [{
+          id: 'axisArrows',
+          afterDraw(chart) {
+            const ctx = chart.ctx;
+            const { left, right, top, bottom } = chart.chartArea;
+            ctx.save();
+            ctx.strokeStyle = '#4a7060'; ctx.fillStyle = '#4a7060'; ctx.lineWidth = 1.5;
+            ctx.beginPath(); ctx.moveTo(left, bottom); ctx.lineTo(right + 14, bottom); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(right+14, bottom); ctx.lineTo(right+7, bottom-5); ctx.lineTo(right+7, bottom+5); ctx.closePath(); ctx.fill();
+            ctx.beginPath(); ctx.moveTo(left, bottom); ctx.lineTo(left, top - 14); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(left, top-14); ctx.lineTo(left-5, top-7); ctx.lineTo(left+5, top-7); ctx.closePath(); ctx.fill();
+            ctx.restore();
+          }
+        }]
+      });
+    }
+  } catch(e) { console.error('loadCycle error:', e); }
+}
+
+function deriveLocalPrediction(days) {
+  if (!days || days.length === 0) return null;
+  const totals = {LSTM:[], ANN:[], RandomForest:[]};
+  days.forEach(entry => {
+    const ap = entry.all_predictions || {};
+    MODEL_NAMES.forEach(m => { const v = ap[m]?.predicted_g ?? null; if (v !== null) totals[m].push(v); });
+    if (!entry.all_predictions && entry.predicted_g != null) totals['LSTM'].push(entry.predicted_g);
+  });
+  const avg  = m => totals[m].length ? Math.round(totals[m].reduce((a,b)=>a+b,0)/totals[m].length) : null;
+  const preds = {};
+  MODEL_NAMES.forEach(m => { const v = avg(m); if (v !== null) preds[m] = {predicted_g: v}; });
+  if (!Object.keys(preds).length) return null;
+  const best = MODEL_NAMES.find(m => preds[m]) || 'LSTM';
+  return { all_predictions: preds, best_model: best };
+}
+
+// ══════════════════════════════════════════════════════
+//  SUBMIT DAY
+// ══════════════════════════════════════════════════════
+async function submitDay() {
+  const day  = parseInt(document.getElementById('d-day').value);
+  const temp = parseFloat(document.getElementById('d-temp').value);
+  const hum  = parseFloat(document.getElementById('d-hum').value);
+  const feed = document.getElementById('d-feed').value;
+  const lux  = document.getElementById('d-lux').value;
+  if (!day || day < 1 || day > 45) { toast('Enter a valid day number (1–45).', 'err'); return; }
+  if (isNaN(temp) || isNaN(hum))   { toast('Please fill in Temperature and Humidity.', 'err'); return; }
+  const body = { day, avg_temp: temp, avg_humidity: hum };
+  if (feed) body.feed_g = parseFloat(feed);
+  if (lux)  body.avg_light_lux = parseFloat(lux);
+  const localEntry = { day, avg_temp: temp, avg_humidity: hum, stage: stageFromDay(day), feed_g: feed ? parseFloat(feed) : null, avg_light_lux: lux ? parseFloat(lux) : null, predicted_g: null, confidence: null, all_predictions: null };
+  lsSaveDay(currentCycleId, localEntry);
+  try {
+    let url = '/api/cycle/day';
+    let res = await fetch(url, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
+    if (res.status === 404) {
+      const weekNum = Math.ceil(day / 7);
+      const weekBody = { week: weekNum, avg_temp: temp, avg_humidity: hum };
+      if (feed) weekBody.feed_g = parseFloat(feed);
+      if (lux)  weekBody.avg_light_lux = parseFloat(lux);
+      res = await fetch('https://dropbox-overprice-amiable.ngrok-free.app/api/cycle/week', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(weekBody) });
+    }
+    const data = await res.json();
+    if (data.error) { toast('Error: ' + data.error, 'err'); return; }
+    const confirmedEntry = { ...localEntry, predicted_g: data.predicted_g, confidence: data.confidence, best_model: data.best_model, all_predictions: data.all_predictions || null };
+    lsSaveDay(currentCycleId, confirmedEntry);
+    toast(`Day ${day} saved — best: ${data.predicted_g}g (${data.best_model})`, 'ok');
+    ['d-day','d-temp','d-hum','d-feed','d-lux'].forEach(id => document.getElementById(id).value = '');
+    onDayInput();
+    loadCycle();
+    rebuildComparisonFromCache();
+  } catch(e) {
+    toast('Server error — entry saved locally.', 'info');
+    loadCycle();
+  }
+}
+
+// ══════════════════════════════════════════════════════
+//  DELETE DAY
+// ══════════════════════════════════════════════════════
+async function deleteDay(day) {
+  if (!confirm('Delete Day ' + day + '?')) return;
+  lsDeleteDay(currentCycleId, day);
+  try {
+    let res = await fetch('https://dropbox-overprice-amiable.ngrok-free.app/api/cycle/day/' + day, { method:'DELETE' });
+    if (res.status === 404) { const weekNum = Math.ceil(day / 7); res = await fetch('https://dropbox-overprice-amiable.ngrok-free.app/api/cycle/week/' + weekNum, { method:'DELETE' }); }
+    const d = await res.json();
+    if (d.error) { toast(d.error, 'err'); return; }
+    toast('Day ' + day + ' deleted.', 'info');
+  } catch(e) { toast('Deleted locally.', 'info'); }
+  loadCycle();
+}
+
+// ══════════════════════════════════════════════════════
+//  AUTO-FILL FROM LIVE SENSORS
+// ══════════════════════════════════════════════════════
+async function autoFillDay() {
+  const day = parseInt(document.getElementById('d-day').value);
+  if (!day) { toast('Enter a day number first.', 'err'); return; }
+  const stage = stageFromDay(day);
+  if (stage === 'egg') { toast('Egg stage — no sensor cage for this stage.', 'info'); return; }
+  const sd = latestSensors[stage];
+  if (!sd || sd.temp === null) { toast('No live sensor data for ' + stage + ' stage.', 'err'); return; }
+  document.getElementById('d-temp').value = sd.temp;
+  document.getElementById('d-hum').value  = sd.humidity;
+  if (stage === 'adult' && sd.light !== null) document.getElementById('d-lux').value = sd.light;
+  toast('Auto-filled from live ' + stage + ' sensor!', 'ok');
+}
+
+// ══════════════════════════════════════════════════════
+//  FINISH CYCLE
+// ══════════════════════════════════════════════════════
+async function finishCycle() {
+  const v = parseFloat(document.getElementById('actual-yield').value);
+  if (isNaN(v) || v <= 0) { toast('Enter a valid actual yield.', 'err'); return; }
+  if (!confirm('Finish this cycle with ' + v + 'g actual yield? A new cycle will start.')) return;
+  try {
+    const r = await fetch('https://dropbox-overprice-amiable.ngrok-free.app/api/cycle/finish', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ actual_yield_g: v }) });
+    const d = await r.json();
+    if (d.error) { toast(d.error, 'err'); return; }
+    lsClearCycle(currentCycleId);
+    toast('Cycle finished! New Cycle ' + d.new_cycle_id + ' started.', 'ok');
+    document.getElementById('actual-yield').value = '';
+    loadCycle(); loadHistory();
+    rebuildComparisonFromCache();
+  } catch(e) { toast('Server error', 'err'); }
+}
+
+// ══════════════════════════════════════════════════════
+//  DELETE CYCLE
+// ══════════════════════════════════════════════════════
+async function deleteCycle(id) {
+  if (!confirm('Delete Cycle ' + id + '? This cannot be undone.')) return;
+  lsClearCycle(id);
+  try {
+    const r = await fetch('https://dropbox-overprice-amiable.ngrok-free.app/api/cycles/' + id, { method:'DELETE' });
+    const d = await r.json();
+    if (d.error) { toast(d.error, 'err'); return; }
+    toast('Cycle ' + id + ' deleted.', 'info');
+    loadHistory();
+    rebuildComparisonFromCache();
+  } catch(e) { toast('Server error', 'err'); }
+}
+
+// ══════════════════════════════════════════════════════
+//  HISTORY
+// ══════════════════════════════════════════════════════
+async function loadHistory() {
+  try {
+    const r = await fetch('https://dropbox-overprice-amiable.ngrok-free.app/api/cycles/history');
+    const cycles = await r.json();
+    const el = document.getElementById('history-content');
+    if (!cycles.length) {
+      el.innerHTML = '<div class="empty-state"><div class="empty-icon"><i data-lucide="trophy"></i></div>No finished cycles yet.<br>Complete your first cycle to see history here.</div>';
+      el.querySelectorAll('i[data-lucide]').forEach(n => lucide.createIcons({ nodes: [n] }));
+      return;
+    }
+    el.innerHTML = cycles.slice().reverse().map(c => {
+      const fp = c.final_prediction || {};
+      const errPct = fp.error_pct;
+      const errCls = errPct !== null && errPct !== undefined ? (errPct < 10 ? 'good' : errPct < 20 ? '' : 'bad') : '';
+      const started  = c.started_at  ? c.started_at.split('T')[0]  : '—';
+      const finished = c.finished_at ? c.finished_at.split('T')[0] : '—';
+      const bestModel = fp.best_model || '';
+      const bestColor = MODEL_COLORS[bestModel] || 'var(--larvae)';
+      const allPreds  = fp.all_predictions || {};
+
+      const predCards = MODEL_NAMES.map(m => {
+        const mp = allPreds[m] || {};
+        const isBest = m === bestModel;
+        const color  = MODEL_COLORS[m];
+        const lIcon  = MODEL_LUCIDE[m];
+        return `<div style="flex:1;min-width:100px;background:var(--surface);border-radius:8px;padding:10px 12px;border:1px solid ${isBest ? color : 'var(--border)'};${isBest ? 'box-shadow:0 0 10px ' + color + '22;' : ''}">
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:.58rem;color:${color};margin-bottom:4px;font-weight:700;display:flex;align-items:center;gap:4px">
+            <i data-lucide="${lIcon}" style="width:11px;height:11px"></i> ${MODEL_ICONS[m]} ${isBest ? '<i data-lucide="trophy" style="width:10px;height:10px"></i>' : ''}
+          </div>
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:1.1rem;font-weight:800;color:${color}">${mp.predicted_g !== undefined ? mp.predicted_g + 'g' : '—'}</div>
+        </div>`;
+      }).join('');
+
+      const entries = c.days || c.weeks || [];
+      const entriesRows = entries.map(entry => {
+        const dayNum = entry.day || entry.week || '?';
+        const stage  = entry.stage || stageFromDay(parseInt(dayNum));
+        const lIcon  = STAGE_LUCIDE[stage] || 'circle';
+        return `<tr>
+          <td><i data-lucide="${lIcon}" style="width:11px;height:11px;vertical-align:middle"></i> Day ${dayNum}</td>
+          <td><i data-lucide="${lIcon}" style="width:10px;height:10px;vertical-align:middle"></i> ${stage}</td>
+          <td>${entry.avg_temp}°C</td><td>${entry.avg_humidity}%</td>
+          <td>${entry.feed_g !== null && entry.feed_g !== undefined ? entry.feed_g + 'g' : '—'}</td>
+          <td style="color:var(--larvae)">${entry.predicted_g !== undefined ? entry.predicted_g + 'g' : '—'}</td>
+          <td>${entry.confidence ? '<span class="conf-badge conf-' + entry.confidence.replace('-', '') + '">' + entry.confidence + '</span>' : '—'}</td>
+        </tr>`;
+      }).join('');
+
+      return `<div class="hist-card">
+          <div class="hist-header">
+            <div>
+              <div class="hist-cycle-title">Cycle ${c.cycle_id}</div>
+              <div class="hist-dates"><i data-lucide="calendar" class="icon-date"></i>${started} → ${finished}</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px">
+              ${fp.confidence ? '<span class="conf-badge conf-' + (fp.confidence || '').replace('-', '') + '">' + fp.confidence + ' confidence</span>' : ''}
+              <button onclick="deleteCycle(${c.cycle_id})" style="background:none;border:1px solid var(--danger);color:var(--danger);font-family:'IBM Plex Mono',monospace;font-size:.65rem;padding:4px 10px;border-radius:6px;cursor:pointer;display:inline-flex;align-items:center;gap:5px">
+                <i data-lucide="trash-2" style="width:12px;height:12px"></i> Delete
+              </button>
+            </div>
+          </div>
+          <div class="hist-stats">
+            <div><div class="hist-stat-label">Actual Yield</div><div class="hist-stat-val">${c.actual_yield_g}g</div></div>
+            <div><div class="hist-stat-label">Best Predicted</div><div class="hist-stat-val" style="color:${bestColor}">${fp.predicted_g !== undefined ? fp.predicted_g + 'g' : '—'}</div></div>
+            <div><div class="hist-stat-label">Best Model</div><div class="hist-stat-val" style="font-size:.9rem;color:${bestColor}">${bestModel || '—'}</div></div>
+            <div><div class="hist-stat-label">Error</div><div class="hist-stat-val ${errCls}">${fp.error_g !== undefined && fp.error_g !== null ? fp.error_g + 'g' : '—'}</div></div>
+            <div><div class="hist-stat-label">Error %</div><div class="hist-stat-val ${errCls}">${errPct !== undefined && errPct !== null ? errPct + '%' : '—'}</div></div>
+            <div><div class="hist-stat-label">Days Recorded</div><div class="hist-stat-val">${entries.length}</div></div>
+          </div>
+          <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:.62rem;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.4px">All Model Predictions</div>
+            <div style="display:flex;gap:10px;flex-wrap:wrap">${predCards}</div>
+          </div>
+          ${entriesRows ? `<div class="hist-weeks-wrap">
+            <table class="hist-weeks-table">
+              <thead><tr><th>Day</th><th>Stage</th><th>Temp</th><th>Humid</th><th>Feed</th><th>Best Pred</th><th>Confidence</th></tr></thead>
+              <tbody>${entriesRows}</tbody>
+            </table>
+          </div>` : ''}
+        </div>`;
+    }).join('');
+    el.querySelectorAll('i[data-lucide]').forEach(n => lucide.createIcons({ nodes: [n] }));
+  } catch(e) {
+    document.getElementById('history-content').innerHTML = '<div class="empty-state"><div class="empty-icon"><i data-lucide="alert-triangle"></i></div>Could not load history.</div>';
+    document.getElementById('history-content').querySelectorAll('i[data-lucide]').forEach(n => lucide.createIcons({ nodes: [n] }));
+  }
+}
+
+// ══════════════════════════════════════════════════════
+//  AI MODEL COMPARISON
+// ══════════════════════════════════════════════════════
+let chartR2 = null, chartMae = null, chartYieldCompare = null, chartRmse = null, chartMape = null;
+
+async function loadComparison() {
+  let trainedCycles = [], historyCycles = [];
+  try { const r = await fetch('https://dropbox-overprice-amiable.ngrok-free.app/api/cycle_results'); if (r.ok) { const data = await r.json(); trainedCycles = Object.entries(data).filter(([k]) => !isNaN(parseInt(k))).map(([,v]) => v).sort((a,b) => a.cycle - b.cycle); } } catch(e) {}
+  try { const r = await fetch('https://dropbox-overprice-amiable.ngrok-free.app/api/cycles/history'); if (r.ok) historyCycles = await r.json(); } catch(e) {}
+
+  const fromHistory = historyCycles
+    .filter(c => c.final_prediction && c.final_prediction.all_predictions)
+    .map(c => {
+      const fp = c.final_prediction, ap = fp.all_predictions || {}, models = {};
+      MODEL_NAMES.forEach(m => { const mp = ap[m] || {}; models[m] = { predicted_g: mp.predicted_g ?? null, test_r2: mp.r2 ?? null, train_r2: null, mae_g: null, rmse_g: null, mape: null, epochs: null }; });
+      return { cycle: c.cycle_id, actual_g: c.actual_yield_g, best_model: fp.best_model, total_readings: (c.days || c.weeks || []).length, models, _source: 'history' };
+    });
+
+  const cycleMap = {};
+  fromHistory.forEach(c => { cycleMap[c.cycle] = c; });
+  trainedCycles.forEach(c => { cycleMap[c.cycle] = { ...(cycleMap[c.cycle] || {}), ...c, _source: 'trained' }; });
+
+  const localDays = lsGetDays(currentCycleId);
+  if (localDays.length > 0) {
+    const pred = deriveLocalPrediction(localDays);
+    if (pred && !cycleMap[currentCycleId]) {
+      const models = {};
+      MODEL_NAMES.forEach(m => { const ap = pred.all_predictions[m] || {}; models[m] = { predicted_g: ap.predicted_g ?? null, test_r2: null, train_r2: null, mae_g: null, rmse_g: null, mape: null, epochs: null }; });
+      cycleMap[currentCycleId] = { cycle: currentCycleId, actual_g: null, best_model: pred.best_model, total_readings: localDays.length, models, _source: 'current' };
+    }
+  }
+
+  const cycles = Object.values(cycleMap).sort((a,b) => a.cycle - b.cycle);
+
+  if (!cycles.length) {
+    document.getElementById('compare-cards').innerHTML = '';
+    document.getElementById('compare-tbody').innerHTML = `<tr><td colspan="11"><div class="empty-state"><div class="empty-icon"><i data-lucide="bar-chart-2"></i></div>Complete a cycle or add daily data to see AI model comparison.</div></td></tr>`;
+    document.getElementById('compare-tbody').querySelectorAll('i[data-lucide]').forEach(n => lucide.createIcons({ nodes: [n] }));
+    return;
+  }
+
+  const cardsEl = document.getElementById('compare-cards');
+  cardsEl.innerHTML = cycles.map(c => {
+    const best = c.best_model || '—', bestColor = MODEL_COLORS[best] || 'var(--larvae)', models = c.models || {}, bm = models[best] || {};
+    const isCurrent = c._source === 'current';
+    const lIcon = MODEL_LUCIDE[best] || 'cpu';
+    return `<div style="background:var(--card);border:1px solid ${bestColor};border-radius:12px;padding:16px;box-shadow:0 0 16px ${bestColor}22;position:relative">
+        ${isCurrent ? '<div style="position:absolute;top:8px;right:10px;font-family:\'IBM Plex Mono\',monospace;font-size:.55rem;color:var(--pupa);border:1px solid var(--pupa);border-radius:100px;padding:2px 7px">IN PROGRESS</div>' : ''}
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:.65rem;color:var(--muted);margin-bottom:6px">CYCLE ${c.cycle}</div>
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:.72rem;color:${bestColor};margin-bottom:10px;font-weight:700;display:flex;align-items:center;gap:5px">
+          <i data-lucide="${lIcon}" style="width:13px;height:13px"></i> ${MODEL_ICONS[best] || best} <span style="color:var(--muted);font-weight:400">← best</span>
+        </div>
+        <div style="font-size:1.4rem;font-weight:800;color:${bestColor};font-family:'IBM Plex Mono',monospace">${bm.train_r2 ?? '—'}</div>
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:.65rem;color:var(--muted);margin-bottom:8px">Train R²</div>
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:.72rem;line-height:1.8">
+          MAE : <span style="color:${bestColor}">${bm.mae_g_train != null ? bm.mae_g_train + 'g' : '—'}</span><br>
+          RMSE: <span style="color:${bestColor}">${bm.rmse_g_train != null ? bm.rmse_g_train + 'g' : '—'}</span><br>
+          MAPE: <span style="color:${bestColor}">${bm.mape_train != null ? bm.mape_train + '%' : '—'}</span><br>
+          Actual: <span style="color:var(--text)">${c.actual_g != null ? c.actual_g + 'g' : 'In progress'}</span><br>
+          Predicted: <span style="color:${bestColor}">${bm.predicted_g != null ? bm.predicted_g + 'g' : '—'}</span>
+        </div>
+      </div>`;
+  }).join('');
+  cardsEl.querySelectorAll('i[data-lucide]').forEach(n => lucide.createIcons({ nodes: [n] }));
+
+  let tbodyHtml = '';
+  cycles.forEach(c => {
+    const models = c.models || {}, best = c.best_model || '';
+    MODEL_NAMES.forEach((mname, mi) => {
+      const m = models[mname] || {}, isBest = mname === best, color = MODEL_COLORS[mname];
+      const cycleCell = mi === 0
+        ? `<td class="td-day" rowspan="3" style="vertical-align:middle;border-right:1px solid var(--border)">Cycle ${c.cycle}${c._source === 'current' ? ' <span style="font-size:.6rem;color:var(--pupa)">(live)</span>' : ''}<br><span style="font-size:.65rem;color:var(--muted)">${c.total_readings || '—'} readings</span></td>
+           <td class="td-actual" rowspan="3" style="vertical-align:middle;border-right:1px solid var(--border)">${c.actual_g != null ? c.actual_g + 'g' : 'In progress'}</td>`
+        : '';
+      const r2c = m.train_r2 != null ? (m.train_r2 >= 0.85 ? 'var(--larvae)' : m.train_r2 >= 0.7 ? 'var(--warn)' : 'var(--danger)') : 'var(--muted)';
+      const bestBadge = isBest
+        ? `<span style="background:${color}22;color:${color};border:1px solid ${color};font-size:.58rem;padding:2px 7px;border-radius:100px;font-family:'IBM Plex Mono',monospace;display:inline-flex;align-items:center;gap:4px"><i data-lucide="trophy" style="width:10px;height:10px"></i> BEST</span>`
+        : `<span style="color:var(--muted2);font-size:.65rem;font-family:'IBM Plex Mono',monospace">—</span>`;
+      tbodyHtml += `<tr style="${isBest ? 'background:' + color + '0a;' : ''}${mi === 2 ? 'border-bottom:2px solid var(--border2);' : ''}">
+          ${cycleCell}
+          <td style="font-family:'IBM Plex Mono',monospace;font-size:.75rem;color:${color};display:flex;align-items:center;gap:5px">
+            <i data-lucide="${MODEL_LUCIDE[mname]}" style="width:13px;height:13px"></i> ${mname}
+          </td>
+          <td>${bestBadge}</td>
+          <td style="font-family:'IBM Plex Mono',monospace;font-size:.75rem;color:${r2c};font-weight:700">${m.train_r2 ?? '—'}</td>
+          <td style="display:none">${m.test_r2 ?? '—'}</td>
+          <td style="font-family:'IBM Plex Mono',monospace;font-size:.75rem">${m.mae_g_train != null ? m.mae_g_train : '—'}</td>
+          <td style="font-family:'IBM Plex Mono',monospace;font-size:.75rem">${m.rmse_g_train != null ? m.rmse_g_train : '—'}</td>
+          <td style="font-family:'IBM Plex Mono',monospace;font-size:.75rem">${m.mape_train != null ? m.mape_train + '%' : '—'}</td>
+          <td class="td-pred">${m.predicted_g != null ? m.predicted_g + 'g' : '—'}</td>
+          <td style="font-family:'IBM Plex Mono',monospace;font-size:.75rem;color:var(--muted)">${m.epochs != null ? m.epochs : '—'}</td>
+        </tr>`;
+    });
+  });
+  const tbodyEl = document.getElementById('compare-tbody');
+  tbodyEl.innerHTML = tbodyHtml || `<tr><td colspan="11"><div class="empty-state"><div class="empty-icon"><i data-lucide="bar-chart-2"></i></div>No data yet.</div></td></tr>`;
+  tbodyEl.querySelectorAll('i[data-lucide]').forEach(n => lucide.createIcons({ nodes: [n] }));
+
+  const labels = cycles.map(c => `Cycle ${c.cycle}`);
+  const chartOpts = (yLabel, max) => ({
+    responsive: true,
+    plugins: { legend: { labels: { color: '#4a7060', font: { family: 'IBM Plex Mono', size: 10 } } } },
+    scales: {
+      x: { grid: { color: '#1c3326' }, ticks: { color: '#4a7060', font: { family: 'IBM Plex Mono', size: 10 } } },
+      y: { grid: { color: '#1c3326' }, ticks: { color: '#4a7060', font: { family: 'IBM Plex Mono', size: 10 } },
+           ...(max !== undefined ? { max } : {}),
+           title: { display: true, text: yLabel, color: '#4a7060', font: { family: 'IBM Plex Mono' } } }
+    }
+  });
+
+  if (chartR2) chartR2.destroy();
+  chartR2 = new Chart(document.getElementById('chart-r2'), { type:'bar', data: { labels, datasets: MODEL_NAMES.map(m => ({ label: m, data: cycles.map(c => c.models?.[m]?.test_r2 ?? null), backgroundColor: MODEL_COLORS[m] + '55', borderColor: MODEL_COLORS[m], borderWidth: 1, borderRadius: 4 })) }, options: chartOpts('Test R²', 1) });
+
+  if (chartMae) chartMae.destroy();
+  chartMae = new Chart(document.getElementById('chart-mae'), { type:'line', data: { labels, datasets: MODEL_NAMES.map(m => ({ label: m, data: cycles.map(c => c.models?.[m]?.mae_g ?? null), borderColor: MODEL_COLORS[m], backgroundColor: MODEL_COLORS[m] + '22', fill: false, tension: .4, pointRadius: 5, pointBackgroundColor: MODEL_COLORS[m] })) }, options: chartOpts('MAE (g)') });
+
+  if (chartRmse) chartRmse.destroy();
+  chartRmse = new Chart(document.getElementById('chart-rmse'), { type:'line', data: { labels, datasets: MODEL_NAMES.map(m => ({ label: m, data: cycles.map(c => c.models?.[m]?.rmse_g ?? null), borderColor: MODEL_COLORS[m], backgroundColor: MODEL_COLORS[m] + '22', fill: false, tension: .4, pointRadius: 5, pointBackgroundColor: MODEL_COLORS[m] })) }, options: chartOpts('RMSE (g)') });
+
+  if (chartMape) chartMape.destroy();
+  chartMape = new Chart(document.getElementById('chart-mape'), { type:'line', data: { labels, datasets: MODEL_NAMES.map(m => ({ label: m, data: cycles.map(c => c.models?.[m]?.mape ?? null), borderColor: MODEL_COLORS[m], backgroundColor: MODEL_COLORS[m] + '22', fill: false, tension: .4, pointRadius: 5, pointBackgroundColor: MODEL_COLORS[m] })) }, options: chartOpts('MAPE (%)') });
+
+  if (chartYieldCompare) chartYieldCompare.destroy();
+  chartYieldCompare = new Chart(document.getElementById('chart-yield-compare'), { type:'bar', data: { labels, datasets: [
+    { label: 'Actual', data: cycles.map(c => c.actual_g), backgroundColor: 'rgba(255,171,64,.6)', borderColor: '#ffab40', borderWidth: 1, borderRadius: 4 },
+    ...MODEL_NAMES.map(m => ({ label: m + ' Predicted', data: cycles.map(c => c.models?.[m]?.predicted_g ?? null), backgroundColor: MODEL_COLORS[m] + '55', borderColor: MODEL_COLORS[m], borderWidth: 1, borderRadius: 4 }))
+  ]}, options: chartOpts('grams (g)') });
+}
+
+// ══════════════════════════════════════════════════════
+//  DATA HISTORY — sensor log every 2 minutes
+// ══════════════════════════════════════════════════════
+const LS_DLOG_KEY = 'bsfnexus_datalog';
+const DLOG_MAX    = 500;
+let   dlogFilter  = 'all';
+
+const THRESHOLDS = {
+  larvae : { temp: { lo: 26, hi: 32 }, hum: { lo: 60, hi: 80 } },
+  pupa   : { temp: { lo: 26, hi: 32 }, hum: { lo: 60, hi: 80 } },
+  adult  : { temp: { lo: 26, hi: 32 }, hum: { lo: 60, hi: 80 }, lux: { lo: 300, hi: 1000 } }
+};
+
+function deriveActuators(cage, temp, hum, lux) {
+  const thr  = THRESHOLDS[cage] || THRESHOLDS.larvae;
+  const acts = [];
+  if (temp !== null && temp !== undefined) {
+    if (temp > thr.temp.hi) {
+      acts.push({ name: 'DC Fan',   state: 'alert', reason: 'Temp too HIGH (' + temp + '°C)' });
+      acts.push({ name: 'Heater',   state: 'off',   reason: 'Off — cooling needed' });
+    } else if (temp < thr.temp.lo) {
+      acts.push({ name: 'Heater',   state: 'alert', reason: 'Temp too LOW (' + temp + '°C)' });
+      acts.push({ name: 'DC Fan',   state: 'off',   reason: 'Off — heating needed' });
+    } else if (temp > thr.temp.hi - 1.5) {
+      acts.push({ name: 'DC Fan',   state: 'warn',  reason: 'Temp approaching limit' });
+      acts.push({ name: 'Heater',   state: 'off',   reason: 'Normal' });
+    } else {
+      acts.push({ name: 'DC Fan',   state: 'off',   reason: 'Normal' });
+      acts.push({ name: 'Heater',   state: 'off',   reason: 'Normal' });
+    }
+  }
+  if (hum !== null && hum !== undefined) {
+    if (hum < thr.hum.lo)       acts.push({ name: 'Humidifier', state: 'alert', reason: 'Humidity too LOW (' + hum + '%)' });
+    else if (hum > thr.hum.hi)  acts.push({ name: 'Humidifier', state: 'warn',  reason: 'Humidity too HIGH (' + hum + '%)' });
+    else                         acts.push({ name: 'Humidifier', state: 'off',   reason: 'Normal' });
+  }
+  if (cage === 'adult' && lux !== null && lux !== undefined) {
+    if (lux < THRESHOLDS.adult.lux.lo)       acts.push({ name: 'LED Bulb', state: 'alert', reason: 'Light too LOW (' + lux + ' lx)' });
+    else if (lux > THRESHOLDS.adult.lux.hi)  acts.push({ name: 'LED Bulb', state: 'warn',  reason: 'Light too HIGH (' + lux + ' lx)' });
+    else                                      acts.push({ name: 'LED Bulb', state: 'on',    reason: 'Normal' });
+  }
+  return acts;
+}
+
+function buildAlerts(cage, temp, hum, lux) {
+  const thr    = THRESHOLDS[cage] || THRESHOLDS.larvae;
+  const alerts = [];
+  if (temp !== null && temp !== undefined) {
+    if (temp > thr.temp.hi)           alerts.push({ level: 'danger', msg: 'Temp HIGH' });
+    else if (temp < thr.temp.lo)      alerts.push({ level: 'danger', msg: 'Temp LOW' });
+    else if (temp > thr.temp.hi-1.5)  alerts.push({ level: 'warn',   msg: 'Temp ↑' });
+  }
+  if (hum !== null && hum !== undefined) {
+    if (hum < thr.hum.lo)       alerts.push({ level: 'danger', msg: 'Humidity LOW' });
+    else if (hum > thr.hum.hi)  alerts.push({ level: 'warn',   msg: 'Humidity HIGH' });
+  }
+  if (cage === 'adult' && lux !== null && lux !== undefined) {
+    if (lux < THRESHOLDS.adult.lux.lo)       alerts.push({ level: 'danger', msg: 'Light LOW' });
+    else if (lux > THRESHOLDS.adult.lux.hi)  alerts.push({ level: 'warn',   msg: 'Light HIGH' });
+  }
+  if (!alerts.length) alerts.push({ level: 'ok', msg: 'All normal' });
+  return alerts;
+}
+
+function dlogGetAll() { try { const raw = localStorage.getItem(LS_DLOG_KEY); return raw ? JSON.parse(raw) : []; } catch(e) { return []; } }
+function dlogAppend(entries) {
+  try { let log = dlogGetAll(); log = log.concat(entries); if (log.length > DLOG_MAX) log = log.slice(log.length - DLOG_MAX); localStorage.setItem(LS_DLOG_KEY, JSON.stringify(log)); } catch(e) {}
+}
+function fmtTs(ts) { const d = new Date(ts); const pad = n => String(n).padStart(2, '0'); return d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate()) + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds()); }
+
+function captureDataLogSnapshot() {
+  if (!latestSensors || !Object.keys(latestSensors).length) return;
+  const ts = new Date().toISOString(), snap = [];
+  ['larvae', 'pupa', 'adult'].forEach(cage => {
+    const sd = latestSensors[cage];
+    if (!sd || (sd.temp === null && sd.humidity === null)) return;
+    snap.push({ ts, cage, temp: sd.temp, hum: sd.humidity, lux: cage === 'adult' ? sd.light : null });
+  });
+  if (snap.length) dlogAppend(snap);
+}
+
+function actPillHtml(act) {
+  const stateClass = { on:'on', off:'off', alert:'alert', warn:'warn' }[act.state] || 'off';
+  const iconMap = { 'DC Fan':'wind', 'Heater':'flame', 'Humidifier':'cloud-drizzle', 'LED Bulb':'lightbulb' };
+  const icon = iconMap[act.name] || 'zap';
+  return `<span class="act-pill ${stateClass}" title="${act.reason}"><i data-lucide="${icon}" style="width:10px;height:10px"></i>${act.name}</span>`;
+}
+
+function renderDataLog() {
+  const all      = dlogGetAll().slice().reverse();
+  const filtered = dlogFilter === 'all' ? all : all.filter(e => e.cage === dlogFilter);
+  const tbody    = document.getElementById('dlog-tbody');
+  const countEl  = document.getElementById('dlog-count');
+
+  ['all','larvae','pupa','adult'].forEach(f => {
+    const btn = document.getElementById('dlog-filter-' + f);
+    if (btn) btn.classList.toggle('active-filter', f === dlogFilter);
+  });
+
+  if (!filtered.length) {
+    tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><div class="empty-icon"><i data-lucide="database"></i></div>No sensor data logged yet.<br>Data will appear here every 2 minutes once sensors are connected.</div></td></tr>`;
+    tbody.querySelectorAll('i[data-lucide]').forEach(n => lucide.createIcons({ nodes: [n] }));
+    if (countEl) countEl.textContent = '';
+    renderDlogSummary([]);
+    return;
+  }
+
+  const CAGE_LUCIDE = { larvae: 'worm', pupa: 'shell', adult: 'bug' };
+  tbody.innerHTML = filtered.map(entry => {
+    const { ts, cage, temp, hum, lux } = entry;
+    const acts   = deriveActuators(cage, temp, hum, lux);
+    const alerts = buildAlerts(cage, temp, hum, lux);
+    const thr    = THRESHOLDS[cage] || THRESHOLDS.larvae;
+    const tempClass = temp === null ? '' : (temp > thr.temp.hi || temp < thr.temp.lo) ? 'style="color:var(--danger);font-weight:700"' : (temp > thr.temp.hi - 1.5 ? 'style="color:var(--warn)"' : 'style="color:var(--larvae)"');
+    const humClass  = hum  === null ? '' : (hum > thr.hum.hi || hum < thr.hum.lo)    ? 'style="color:var(--danger);font-weight:700"' : 'style="color:var(--larvae)"';
+    const lIcon     = CAGE_LUCIDE[cage] || 'circle';
+    const actsHtml  = acts.map(actPillHtml).join(' ');
+    const alertsHtml = alerts.map(a =>
+      `<span class="alert-tag ${a.level}"><i data-lucide="${a.level === 'danger' ? 'alert-circle' : a.level === 'warn' ? 'alert-triangle' : 'check-circle'}" style="width:10px;height:10px"></i>${a.msg}</span>`
+    ).join('');
+    const luxStr = (cage === 'adult' && lux !== null) ? lux + ' lx' : '<span style="color:var(--muted2)">—</span>';
+    return `<tr>
+      <td style="font-family:'IBM Plex Mono',monospace;font-size:.7rem;color:var(--muted);white-space:nowrap">${fmtTs(ts)}</td>
+      <td><span class="dlog-cage-badge ${cage}"><i data-lucide="${lIcon}" style="width:11px;height:11px"></i>${cage}</span></td>
+      <td style="font-family:'IBM Plex Mono',monospace;font-size:.78rem" ${tempClass}>${temp !== null ? temp + '°C' : '—'}</td>
+      <td style="font-family:'IBM Plex Mono',monospace;font-size:.78rem" ${humClass}>${hum  !== null ? hum  + '%'  : '—'}</td>
+      <td style="font-family:'IBM Plex Mono',monospace;font-size:.78rem">${luxStr}</td>
+      <td><div style="display:flex;flex-wrap:wrap;gap:4px">${actsHtml}</div></td>
+      <td><div style="display:flex;flex-wrap:wrap;gap:2px">${alertsHtml}</div></td>
+    </tr>`;
+  }).join('');
+  tbody.querySelectorAll('i[data-lucide]').forEach(n => lucide.createIcons({ nodes: [n] }));
+  if (countEl) countEl.textContent = filtered.length + ' of ' + all.length + ' entries shown';
+  renderDlogSummary(all);
+}
+
+function renderDlogSummary(all) {
+  const sumEl = document.getElementById('dlog-summary');
+  if (!sumEl) return;
+  const cages = ['larvae', 'pupa', 'adult'];
+  const CAGE_COLORS = { larvae: 'var(--larvae)', pupa: 'var(--pupa)', adult: 'var(--adult)' };
+  const CAGE_LUCIDE = { larvae: 'worm', pupa: 'shell', adult: 'bug' };
+  const CAGE_LABEL  = { larvae: 'Larvae Cage', pupa: 'Pupae Cage', adult: 'Adult Cage' };
+
+  sumEl.innerHTML = cages.map(cage => {
+    const entries = all.filter(e => e.cage === cage);
+    const latest  = entries[0] || null;
+    const color   = CAGE_COLORS[cage];
+    const lIcon   = CAGE_LUCIDE[cage];
+    const recent  = entries.slice(0, 10);
+    const alertCount = recent.reduce((acc, e) => {
+      const a = buildAlerts(cage, e.temp, e.hum, e.lux);
+      return acc + a.filter(x => x.level === 'danger').length;
+    }, 0);
+
+    if (!latest) {
+      return `<div class="dlog-summary-card" style="border-top:3px solid ${color}">
+        <div class="dlog-summary-title"><i data-lucide="${lIcon}" style="width:13px;height:13px;color:${color}"></i><span style="color:${color}">${CAGE_LABEL[cage]}</span></div>
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:.7rem;color:var(--muted2)">No data yet</div>
+      </div>`;
+    }
+
+    const thr    = THRESHOLDS[cage];
+    const tempOk = latest.temp !== null && latest.temp >= thr.temp.lo && latest.temp <= thr.temp.hi;
+    const humOk  = latest.hum  !== null && latest.hum  >= thr.hum.lo  && latest.hum  <= thr.hum.hi;
+    const statusClr = alertCount > 0 ? 'var(--danger)' : 'var(--larvae)';
+    const statusTxt = alertCount > 0 ? alertCount + ' alert' + (alertCount > 1 ? 's' : '') + ' (last 10)' : 'All normal';
+
+    return `<div class="dlog-summary-card" style="border-top:3px solid ${color}">
+      <div class="dlog-summary-title">
+        <i data-lucide="${lIcon}" style="width:13px;height:13px;color:${color}"></i>
+        <span style="color:${color}">${CAGE_LABEL[cage]}</span>
+        <span style="margin-left:auto;color:${statusClr};font-size:.6rem;display:flex;align-items:center;gap:3px">
+          <i data-lucide="${alertCount > 0 ? 'alert-circle' : 'check-circle'}" style="width:10px;height:10px"></i>${statusTxt}
+        </span>
+      </div>
+      <div class="dlog-summary-row">
+        <div class="dlog-summary-stat">
+          <div class="dlog-summary-label">Temp</div>
+          <div class="dlog-summary-val" style="color:${tempOk ? 'var(--larvae)' : 'var(--danger)'}">${latest.temp !== null ? latest.temp + '°C' : '—'}</div>
+        </div>
+        <div class="dlog-summary-stat">
+          <div class="dlog-summary-label">Humidity</div>
+          <div class="dlog-summary-val" style="color:${humOk ? 'var(--larvae)' : 'var(--danger)'}">${latest.hum !== null ? latest.hum + '%' : '—'}</div>
+        </div>
+        ${cage === 'adult' && latest.lux !== null ? `<div class="dlog-summary-stat">
+          <div class="dlog-summary-label">Light</div>
+          <div class="dlog-summary-val" style="color:var(--pupa)">${latest.lux} lx</div>
+        </div>` : ''}
+        <div class="dlog-summary-stat">
+          <div class="dlog-summary-label">Entries</div>
+          <div class="dlog-summary-val" style="color:var(--muted)">${entries.length}</div>
+        </div>
+      </div>
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:.58rem;color:var(--muted2);margin-top:8px;display:flex;align-items:center;gap:4px">
+        <i data-lucide="clock" style="width:10px;height:10px"></i>Last: ${fmtTs(latest.ts)}
+      </div>
+    </div>`;
+  }).join('');
+  sumEl.querySelectorAll('i[data-lucide]').forEach(n => lucide.createIcons({ nodes: [n] }));
+}
+
+function filterDataLog(cage) { dlogFilter = cage; renderDataLog(); }
+function clearDataLog() {
+  if (!confirm('Clear all sensor log data? This cannot be undone.')) return;
+  try { localStorage.removeItem(LS_DLOG_KEY); } catch(e) {}
+  renderDataLog();
+  toast('Sensor log cleared.', 'info');
+}
+
+let _dlogInterval = null;
+function startDataLogInterval() {
+  if (_dlogInterval) return;
+  setTimeout(() => {
+    captureDataLogSnapshot();
+    _dlogInterval = setInterval(captureDataLogSnapshot, 120000);
+  }, 30000);
+}
+startDataLogInterval();
+
+function rebuildComparisonFromCache() {
+  const panel = document.getElementById('panel-compare');
+  if (panel && panel.classList.contains('active')) loadComparison();
+}
+
+// ══════════════════════════════════════════════════════
+//  CYCLE MENU
+// ══════════════════════════════════════════════════════
+function toggleCycleMenu(e) {
+  e.stopPropagation();
+  const m = document.getElementById('cycle-menu');
+  m.style.display = m.style.display === 'none' ? 'block' : 'none';
+}
+document.addEventListener('click', () => { const m = document.getElementById('cycle-menu'); if (m) m.style.display = 'none'; });
+
+async function confirmResetCycle() {
+  document.getElementById('cycle-menu').style.display = 'none';
+  if (!confirm('Reset to Cycle 1? All current daily data will be cleared!')) return;
+  lsClearCycle(currentCycleId);
+  try {
+    const r = await fetch('https://dropbox-overprice-amiable.ngrok-free.app/api/cycle/restart', { method: 'POST' });
+    const d = await r.json();
+    if (d.error) { toast(d.error, 'err'); return; }
+    toast('Reset to Cycle 1!', 'info');
+    loadCycle();
+  } catch(e) { toast('Server error', 'err'); }
+}
+
+// ══════════════════════════════════════════════════════
+//  BOOT
+// ══════════════════════════════════════════════════════
+function _boot() {
+  applyTheme(currentTheme);
+  renderIcons();
+  loadCycle();
+  setInterval(loadCycle, 10000);
+}
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js" onload="_boot()"></script>
+</body>
+</html>
