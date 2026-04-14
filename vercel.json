@@ -3,7 +3,7 @@
   "rewrites": [
     {
       "source": "/logout",
-      "destination": "https://your-ngrok-link.ngrok-free.app/logout"
+      "destination": "https://dropbox-overprice-amiable.ngrok-free.dev/logout"
     }
   ]
 }
