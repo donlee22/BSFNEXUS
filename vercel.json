@@ -1,9 +1,9 @@
 {
-  "version": 2
-  "rewrites": [
+  "redirects": [
     {
       "source": "/logout",
-      "destination": "https://dropbox-overprice-amiable.ngrok-free.dev/logout"
+      "destination": "/",
+      "permanent": false
     }
   ]
 }
