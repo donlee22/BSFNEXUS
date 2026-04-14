@@ -1,9 +1,13 @@
 {
-  "redirects": [
+  "version": 2,
+  "rewrites": [
     {
       "source": "/logout",
-      "destination": "/",
-      "permanent": false
+      "destination": "/"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ]
 }
