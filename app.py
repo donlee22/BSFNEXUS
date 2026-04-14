@@ -6,6 +6,7 @@ Each model predicts separately, best one highlighted
 
 from flask import Flask, render_template, jsonify, request, redirect, url_for, session
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user
+from flask_cors import CORS
 import serial, serial.tools.list_ports
 import threading, time, json, os, pickle
 import numpy as np
@@ -13,6 +14,7 @@ import hashlib
 from datetime import datetime
 
 app = Flask(__name__)
+CORS(app)
 app.secret_key = "bsf_monitor_secret_2024"
 
 # ── LOGIN SETUP ──────────────────────────────────────────────
@@ -371,6 +373,7 @@ def serial_thread():
                     raw = ser.readline().decode("utf-8", errors="ignore")
                     if raw.strip(): parse_line(raw)
             except Exception as e:
+                if 'ser' in locals(): ser.close() # Close if it was opened
                 serial_status.update({"connected": False, "port": None, "error": str(e)})
         else:
             serial_status.update({"connected": False, "port": None, "error": "No Arduino found"})
@@ -719,7 +722,7 @@ def login():
 @login_required
 def logout():
     logout_user()
-    return redirect("https://bsfnexus.vercel.app")
+    return redirect("https://bsfnexus.vercel.app/")
 
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0", port=5000)
