@@ -14,7 +14,7 @@ import hashlib
 from datetime import datetime
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={r"/api/*": {"origins": "*"}})
 app.secret_key = "bsf_monitor_secret_2024"
 
 # ── LOGIN SETUP ──────────────────────────────────────────────
