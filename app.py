@@ -42,9 +42,9 @@ MODEL_DIR = os.path.join(BASE, "models")
 
 # ── Sensor state ──────────────────────────────────────────────
 sensor_data = {
-    "larvae": {"temp": None, "humidity": None, "timestamp": ""},
-    "pupa":   {"temp": None, "humidity": None, "timestamp": ""},
-    "adult":  {"temp": None, "humidity": None, "light": None, "timestamp": ""},
+    "larvae": {"temp": None, "hum": None, "timestamp": ""},
+    "pupa":   {"temp": None, "hum": None, "timestamp": ""},
+    "adult":  {"temp": None, "hum": None, "light": None, "timestamp": ""},
 }
 serial_status = {"connected": False, "port": None, "error": ""}
 data_lock     = threading.Lock()
@@ -357,9 +357,10 @@ def serial_thread():
         port = find_port()
         if port:
             try:
-                # Dapat itong part na ito ay nasa loob ng try block
+                # Siguraduhin na 9600 ang baud rate
                 ser = serial.Serial(port, 9600, timeout=1)
                 serial_status.update({"connected": True, "port": port, "error": None})
+                print(f"[SERIAL] Connected to {port}")
                 
                 while True:
                     if ser.in_waiting > 0:
@@ -368,26 +369,37 @@ def serial_thread():
                             try:
                                 data = json.loads(raw_line)
                                 with data_lock:
-                                    # Sinisiguro nating match sa Arduino JSON mo
-                                    sensor_data["adult"] = data.get("adult", {})
-                                    sensor_data["larvae"] = data.get("larvae", {})
-                                    sensor_data["pupae"] = data.get("pupae", {})
-                                    # Nilalagyan natin ng timestamp para sa dashboard
-                                    sensor_data["adult"]["timestamp"] = datetime.now().strftime("%H:%M:%S")
-                                    sensor_data["larvae"]["timestamp"] = datetime.now().strftime("%H:%M:%S")
-                                    sensor_data["pupae"]["timestamp"] = datetime.now().strftime("%H:%M:%S")
+                                    # PAGWAWASTO NG MGA NAMES:
+                                    # 1. Larvae
+                                    if "larvae" in data:
+                                        sensor_data["larvae"]["temp"] = data["larvae"].get("temp")
+                                        sensor_data["larvae"]["humidity"] = data["larvae"].get("hum") # 'hum' sa Arduino
+                                        sensor_data["larvae"]["timestamp"] = datetime.now().strftime("%H:%M:%S")
+                                    
+                                    # 2. Pupa (Match sa 'pupae' ng Arduino)
+                                    if "pupae" in data:
+                                        sensor_data["pupa"]["temp"] = data["pupae"].get("temp")
+                                        sensor_data["pupa"]["humidity"] = data["pupae"].get("hum")
+                                        sensor_data["pupa"]["timestamp"] = datetime.now().strftime("%H:%M:%S")
+                                        
+                                    # 3. Adult
+                                    if "adult" in data:
+                                        sensor_data["adult"]["temp"] = data["adult"].get("temp")
+                                        sensor_data["adult"]["humidity"] = data["adult"].get("hum")
+                                        sensor_data["adult"]["light"] = data["adult"].get("light")
+                                        sensor_data["adult"]["timestamp"] = datetime.now().strftime("%H:%M:%S")
+                                        
                             except json.JSONDecodeError as je:
-                                print(f"JSON Parse Error: {je} | Raw: {raw_line}")
+                                print(f"[JSON] Error: {je} | Raw: {raw_line}")
                                 
             except Exception as e:
-                print(f"Serial Error: {e}")
+                print(f"[SERIAL] Error: {e}")
                 serial_status.update({"connected": False, "port": None, "error": str(e)})
                 if 'ser' in locals(): ser.close()
         else:
             serial_status.update({"connected": False, "port": None, "error": "No Arduino found"})
         
-        time.sleep(5) # Maghihintay bago sumubok ulit kung nadisconnect
-
+        time.sleep(5)
 # ── Routes ────────────────────────────────────────────────────
 @app.route("/")
 @login_required
