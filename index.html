@@ -840,27 +840,38 @@ async function pollSensors() {
     const j = await r.json();
     const s = j.sensors, sr = j.serial;
     latestSensors = s;
+    
     const led = document.getElementById('led'), lbl = document.getElementById('conn-label');
-    if (sr.connected) { led.classList.add('on'); lbl.textContent = 'Arduino · ' + (sr.port || ''); }
-    else { led.classList.remove('on'); lbl.textContent = sr.error || 'Disconnected'; }
+    if (sr.connected) { 
+        led.classList.add('on'); 
+        lbl.textContent = 'Arduino · ' + (sr.port || ''); 
+    } else { 
+        led.classList.remove('on'); 
+        lbl.textContent = sr.error || 'Disconnected'; 
+    }
+
+    // MGA PAGWAWASTO SA KEYS:
     setVal('l-temp', s.larvae.temp, '°C', tempStatus(s.larvae.temp));
-    setVal('l-hum',  s.larvae.humidity, '%', humStatus(s.larvae.humidity));
-    setVal('p-temp', s.pupa.temp, '°C', tempStatus(s.pupa.temp));
-    setVal('p-hum',  s.pupa.humidity, '%', humStatus(s.pupa.humidity));
+    setVal('l-hum',  s.larvae.hum, '%', humStatus(s.larvae.hum)); // hum, hindi humidity
+
+    setVal('p-temp', s.pupae.temp, '°C', tempStatus(s.pupae.temp)); // pupae, hindi pupa
+    setVal('p-hum',  s.pupae.hum, '%', humStatus(s.pupae.hum));
+
     setVal('a-temp', s.adult.temp, '°C', tempStatus(s.adult.temp));
-    setVal('a-hum',  s.adult.humidity, '%', humStatus(s.adult.humidity));
+    setVal('a-hum',  s.adult.hum, '%', humStatus(s.adult.hum));
     setVal('a-lux',  s.adult.light, 'lx', '');
+
+    // Sa loop para sa timestamp:
     ['l','p','a'].forEach((k,i) => {
-      const st = ['larvae','pupa','adult'][i];
+      const st = ['larvae','pupae','adult'][i]; // pinalitan ang 'pupa' ng 'pupae'
       const ts = s[st].timestamp;
       const el = document.getElementById(k + '-ts');
       if (el) el.textContent = ts ? 'Last update: ' + ts : 'No data yet';
     });
-  } catch(e) {}
+  } catch(e) {
+      console.error("Dashboard Error:", e); // Para makita mo ang error sa F12
+  }
 }
-pollSensors();
-setInterval(pollSensors, 3000);
-
 // ══════════════════════════════════════════════════════
 //  DAY INPUT HINT
 // ══════════════════════════════════════════════════════
