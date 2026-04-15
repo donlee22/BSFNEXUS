@@ -357,19 +357,36 @@ def serial_thread():
         port = find_port()
         if port:
             try:
-                ser = serial.Serial(port, 9600, timeout=2)
-                serial_status.update({"connected": True, "port": port, "error": ""})
+                # Dapat itong part na ito ay nasa loob ng try block
+                ser = serial.Serial(port, 9600, timeout=1)
+                serial_status.update({"connected": True, "port": port, "error": None})
+                
                 while True:
-                    raw = ser.readline().decode("utf-8", errors="ignore")
-                    if raw.strip(): parse_line(raw)
+                    if ser.in_waiting > 0:
+                        raw_line = ser.readline().decode('utf-8', errors='ignore').strip()
+                        if raw_line:
+                            try:
+                                data = json.loads(raw_line)
+                                with data_lock:
+                                    # Sinisiguro nating match sa Arduino JSON mo
+                                    sensor_data["adult"] = data.get("adult", {})
+                                    sensor_data["larvae"] = data.get("larvae", {})
+                                    sensor_data["pupae"] = data.get("pupae", {})
+                                    # Nilalagyan natin ng timestamp para sa dashboard
+                                    sensor_data["adult"]["timestamp"] = datetime.now().strftime("%H:%M:%S")
+                                    sensor_data["larvae"]["timestamp"] = datetime.now().strftime("%H:%M:%S")
+                                    sensor_data["pupae"]["timestamp"] = datetime.now().strftime("%H:%M:%S")
+                            except json.JSONDecodeError as je:
+                                print(f"JSON Parse Error: {je} | Raw: {raw_line}")
+                                
             except Exception as e:
-                if 'ser' in locals(): ser.close()
+                print(f"Serial Error: {e}")
                 serial_status.update({"connected": False, "port": None, "error": str(e)})
+                if 'ser' in locals(): ser.close()
         else:
             serial_status.update({"connected": False, "port": None, "error": "No Arduino found"})
-        time.sleep(5)
-
-threading.Thread(target=serial_thread, daemon=True).start()
+        
+        time.sleep(5) # Maghihintay bago sumubok ulit kung nadisconnect
 
 # ── Routes ────────────────────────────────────────────────────
 @app.route("/")
