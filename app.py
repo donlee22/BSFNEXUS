@@ -379,9 +379,8 @@ def index():
 
 @app.route("/api/sensors")
 def api_sensors():
-    with data_lock:
-        snap = json.loads(json.dumps(sensor_data))
-    return jsonify({"sensors": snap, "serial": serial_status})
+    # Siguraduhin na ang sensor_data ay ang dictionary na may adult, larvae, pupae
+    return jsonify({"sensors": sensor_data, "serial": serial_status})
 
 @app.route("/api/model_info")
 def api_model_info():
