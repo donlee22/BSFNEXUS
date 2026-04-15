@@ -75,7 +75,6 @@ header{position:sticky;top:0;z-index:200;background:var(--header-bg);backdrop-fi
 .cseg{display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-size:.65rem;font-weight:700;transition:flex .4s ease;overflow:hidden;position:relative}
 .cseg span{display:flex;align-items:center;gap:5px;white-space:nowrap;padding:0 6px}
 .cseg .icon-seg{width:12px;height:12px;stroke:currentColor;flex-shrink:0}
-/* Proportional widths: Egg=4, Larvae=20, Pupa=14, Adult=7 → total=45 */
 .cseg-egg{background:#132e22;color:#5ecf95;flex:4}
 .cseg-larv{background:#0e2a1a;color:var(--larvae);flex:20}
 .cseg-pupa{background:#0e2034;color:var(--pupa);flex:14}
@@ -164,14 +163,10 @@ canvas{max-height:220px}
 .conf-mediumhigh{color:var(--pupa);border-color:var(--pupa);background:rgba(64,196,255,.1)}
 .conf-high{color:var(--larvae);border-color:var(--larvae);background:rgba(0,230,118,.1)}
 [data-theme="light"] .conf-high{background:rgba(0,168,79,.1)}
-
-/* ── Daily progress bar ── */
 .prog-wrap{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:18px 20px;margin-bottom:20px;transition:background .3s,border-color .3s}
 .prog-top{display:flex;justify-content:space-between;margin-bottom:8px;font-family:'IBM Plex Mono',monospace;font-size:.65rem;color:var(--muted)}
 .prog-track{height:6px;background:var(--surface);border-radius:10px;overflow:hidden;margin-bottom:10px}
 .prog-fill{height:100%;background:linear-gradient(90deg,var(--larvae),#00b248);border-radius:10px;transition:width .5s ease}
-
-/* Stage mini-bar — proportional: Egg=4, Larvae=20, Pupa=14, Adult=7 */
 .stage-mini-bar{display:flex;border-radius:6px;overflow:hidden;height:22px;border:1px solid var(--border2);margin-top:8px}
 .smb-seg{display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-size:.58rem;font-weight:700;position:relative;overflow:hidden;transition:all .3s;gap:4px}
 .smb-seg .icon-smb{width:11px;height:11px;stroke:currentColor;flex-shrink:0}
@@ -185,7 +180,6 @@ canvas{max-height:220px}
 [data-theme="light"] .smb-larv{background:#c8e6c9;color:#005f2a}
 [data-theme="light"] .smb-pupa{background:#bbdefb;color:#0077b6}
 [data-theme="light"] .smb-adlt{background:#ffe0b2;color:#e06400}
-
 .finish-box{background:rgba(255,82,82,.06);border:1px solid rgba(255,82,82,.3);border-radius:var(--r);padding:20px 22px;margin-top:20px}
 .finish-title{font-size:.95rem;font-weight:800;color:var(--danger);margin-bottom:10px;display:flex;align-items:center;gap:8px}
 .finish-title .icon-finish{width:16px;height:16px;stroke:currentColor}
@@ -223,15 +217,9 @@ canvas{max-height:220px}
 .model-pred-best-label .icon-best{width:11px;height:11px;stroke:currentColor}
 .day-badge{display:inline-flex;align-items:center;gap:5px;font-family:'IBM Plex Mono',monospace;font-size:.65rem;font-weight:700;padding:3px 10px;border-radius:100px;border:1px solid var(--border2);background:var(--surface);color:var(--text)}
 .day-badge .icon-badge{width:11px;height:11px;stroke:currentColor}
-
-/* ── Persistence notice banner ── */
 .persist-notice{display:flex;align-items:center;gap:8px;padding:8px 14px;border-radius:8px;background:rgba(64,196,255,.06);border:1px solid rgba(64,196,255,.2);font-family:'IBM Plex Mono',monospace;font-size:.65rem;color:var(--pupa);margin-bottom:16px}
 .persist-notice .icon-persist{width:14px;height:14px;stroke:currentColor;flex-shrink:0}
-
-/* Lucide inline icon util */
 .lucide{display:inline-flex;align-items:center;vertical-align:middle}
-
-/* ── Data History / Sensor Log ── */
 .dlog-filter-btn{font-family:'IBM Plex Mono',monospace;font-size:.65rem;padding:5px 13px;background:var(--surface);border:1px solid var(--border2);border-radius:8px;color:var(--muted);cursor:pointer;transition:all .18s}
 .dlog-filter-btn:hover{opacity:.8}
 .dlog-filter-btn.active-filter{background:var(--card);color:var(--text);border-color:var(--border2);font-weight:700}
@@ -272,28 +260,28 @@ canvas{max-height:220px}
       </div>
     </div>
     <div class="hdr-right">
-      <div class="hdr-right">
-      <div class="hdr-right">
-  <a href="https://bsfnexus.vercel.app/" >
-  <button id="btn-logout" style="font-family:'IBM Plex Mono',monospace;font-size:.65rem;padding:5px 14px;background:none;border:1px solid #ff5252;color:#ff5252;border-radius:8px;cursor:pointer;display:inline-flex;align-items:center;gap:6px">
-    <i data-lucide="log-out" style="width:13px;height:13px"></i> Logout
-  </button>
-</a>
-</div>
-
-<script>
-async function handleLogout() {
-    try {
-        // Sabihan ang Pi na mag-logout
-        await fetch("https://dropbox-overprice-amiable.ngrok-free.dev/logout", { mode: 'no-cors' });
-    } catch(e) { console.log("Logout signal sent to Pi"); }
-
-    localStorage.clear();
-    sessionStorage.clear();
-    window.location.href = "https://bsfnexus.vercel.app/"; 
-}
-</script>
-
+      <div class="status-chip">
+        <div class="led" id="led"></div>
+        <span id="conn-label">Connecting…</span>
+      </div>
+      <div class="cycle-chip" id="cycle-chip" onclick="toggleCycleMenu(event)" style="cursor:pointer;position:relative">
+        <i data-lucide="refresh-cw" style="width:12px;height:12px"></i> Cycle 1
+        <div id="cycle-menu" style="display:none;position:absolute;top:110%;right:0;background:var(--card);border:1px solid var(--border2);border-radius:10px;padding:8px;z-index:300;min-width:160px;box-shadow:0 8px 32px rgba(0,0,0,.4)">
+          <button onclick="confirmResetCycle()" style="width:100%;text-align:left;background:none;border:none;color:var(--danger);font-family:'IBM Plex Mono',monospace;font-size:.7rem;padding:7px 10px;border-radius:6px;cursor:pointer;display:flex;align-items:center;gap:7px">
+            <i data-lucide="rotate-ccw" style="width:12px;height:12px"></i> Reset to Cycle 1
+          </button>
+        </div>
+      </div>
+      <button class="theme-toggle" id="theme-toggle-btn" onclick="toggleTheme()" title="Switch Theme">
+        <i data-lucide="sun" style="width:16px;height:16px"></i>
+      </button>
+      <a href="/logout">
+        <button id="btn-logout" style="font-family:'IBM Plex Mono',monospace;font-size:.65rem;padding:5px 14px;background:none;border:1px solid #ff5252;color:#ff5252;border-radius:8px;cursor:pointer;display:inline-flex;align-items:center;gap:6px">
+          <i data-lucide="log-out" style="width:13px;height:13px"></i> Logout
+        </button>
+      </a>
+    </div>
+  </div>
 </header>
 
 <div class="wrap z1">
@@ -651,11 +639,7 @@ async function handleLogout() {
         </button>
       </div>
     </div>
-
-    <!-- Summary strips -->
     <div id="dlog-summary" style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px"></div>
-
-    <!-- Actuator legend -->
     <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:16px;font-family:'IBM Plex Mono',monospace;font-size:.64rem;color:var(--muted);align-items:center">
       <span style="font-weight:700;color:var(--text)">Actuator Status:</span>
       <span style="display:flex;align-items:center;gap:4px"><span class="dlog-dot" style="background:var(--larvae)"></span> Active / ON</span>
@@ -663,7 +647,6 @@ async function handleLogout() {
       <span style="display:flex;align-items:center;gap:4px"><span class="dlog-dot" style="background:var(--danger)"></span> Threshold Alert</span>
       <span style="display:flex;align-items:center;gap:4px"><span class="dlog-dot" style="background:var(--warn)"></span> Warning</span>
     </div>
-
     <div class="table-wrap">
       <div class="table-scroll" style="max-height:520px">
         <table>
@@ -803,7 +786,7 @@ function toast(msg, type = 'ok') {
 }
 
 // ══════════════════════════════════════════════════════
-//  STAGE HELPERS — updated day boundaries
+//  STAGE HELPERS
 // ══════════════════════════════════════════════════════
 function stageFromDay(d) {
   if (d <= 4)  return 'egg';
@@ -824,30 +807,20 @@ function stageLabel(s) {
 //  CYCLE BAR (realtime tab)
 // ══════════════════════════════════════════════════════
 function updateCycleHighlight(day) {
-  // These must match the id="name" in your HTML segments
   const segments = ['seg-egg', 'seg-larv', 'seg-pupae', 'seg-adlt'];
-  
   segments.forEach(id => {
     const el = document.getElementById(id);
-    // This 'if (el)' is the most important part! 
-    // it only runs the code if the element is actually found.
-    if (el) { 
-      el.classList.remove('current');
-    }
+    if (el) el.classList.remove('current');
   });
-
-  // Example logic to add the 'current' class back
   let currentId = '';
-  if (day <= 4) currentId = 'seg-egg';
+  if (day <= 4)  currentId = 'seg-egg';
   else if (day <= 24) currentId = 'seg-larv';
   else if (day <= 38) currentId = 'seg-pupae';
   else currentId = 'seg-adlt';
-
   const currentEl = document.getElementById(currentId);
-  if (currentEl) {
-    currentEl.classList.add('current');
-  }
+  if (currentEl) currentEl.classList.add('current');
 }
+
 // ══════════════════════════════════════════════════════
 //  SENSORS
 // ══════════════════════════════════════════════════════
@@ -863,7 +836,7 @@ let latestSensors = {};
 
 async function pollSensors() {
   try {
-    const r = await fetch("https://dropbox-overprice-amiable.ngrok-free.dev/api/sensors");
+    const r = await fetch("/api/sensors");
     const j = await r.json();
     const s = j.sensors, sr = j.serial;
     latestSensors = s;
@@ -942,7 +915,7 @@ function renderModelCards(allPreds, bestModel, container) {
 // ══════════════════════════════════════════════════════
 async function loadCycle() {
   try {
-    const r = await fetch("https://dropbox-overprice-amiable.ngrok-free.dev/api/cycle");
+    const r = await fetch("/api/cycle");
     const d = await r.json();
     currentCycleId = d.current_cycle || 1;
     lsSaveCycleId(currentCycleId);
@@ -1115,7 +1088,6 @@ function deriveLocalPrediction(days) {
 // ══════════════════════════════════════════════════════
 //  SUBMIT DAY
 // ══════════════════════════════════════════════════════
-const NGROK_URL = "https://dropbox-overprice-amiable.ngrok-free.dev";
 async function submitDay() {
   const day  = parseInt(document.getElementById('d-day').value);
   const temp = parseFloat(document.getElementById('d-temp').value);
@@ -1130,8 +1102,7 @@ async function submitDay() {
   const localEntry = { day, avg_temp: temp, avg_humidity: hum, stage: stageFromDay(day), feed_g: feed ? parseFloat(feed) : null, avg_light_lux: lux ? parseFloat(lux) : null, predicted_g: null, confidence: null, all_predictions: null };
   lsSaveDay(currentCycleId, localEntry);
   try {
-    let url = '/api/cycle/day';
-    let res = await fetch(url, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
+    let res = await fetch('/api/cycle/day', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
     if (res.status === 404) {
       const weekNum = Math.ceil(day / 7);
       const weekBody = { week: weekNum, avg_temp: temp, avg_humidity: hum };
@@ -1157,8 +1128,6 @@ async function submitDay() {
 // ══════════════════════════════════════════════════════
 //  DELETE DAY
 // ══════════════════════════════════════════════════════
-const NGROK_URL = "https://dropbox-overprice-amiable.ngrok-free.dev";
-
 async function deleteDay(day) {
   if (!confirm('Delete Day ' + day + '?')) return;
   lsDeleteDay(currentCycleId, day);
@@ -1191,8 +1160,6 @@ async function autoFillDay() {
 // ══════════════════════════════════════════════════════
 //  FINISH CYCLE
 // ══════════════════════════════════════════════════════
-const NGROK_URL = "https://dropbox-overprice-amiable.ngrok-free.dev";
-
 async function finishCycle() {
   const v = parseFloat(document.getElementById('actual-yield').value);
   if (isNaN(v) || v <= 0) { toast('Enter a valid actual yield.', 'err'); return; }
@@ -1212,8 +1179,6 @@ async function finishCycle() {
 // ══════════════════════════════════════════════════════
 //  DELETE CYCLE
 // ══════════════════════════════════════════════════════
-const NGROK_URL = "https://dropbox-overprice-amiable.ngrok-free.dev";
-
 async function deleteCycle(id) {
   if (!confirm('Delete Cycle ' + id + '? This cannot be undone.')) return;
   lsClearCycle(id);
@@ -1230,8 +1195,6 @@ async function deleteCycle(id) {
 // ══════════════════════════════════════════════════════
 //  HISTORY
 // ══════════════════════════════════════════════════════
-const NGROK_URL = "https://dropbox-overprice-amiable.ngrok-free.dev";
-
 async function loadHistory() {
   try {
     const r = await fetch('/api/cycles/history');
@@ -1324,8 +1287,6 @@ async function loadHistory() {
 //  AI MODEL COMPARISON
 // ══════════════════════════════════════════════════════
 let chartR2 = null, chartMae = null, chartYieldCompare = null, chartRmse = null, chartMape = null;
-
-const NGROK_URL = "https://dropbox-overprice-amiable.ngrok-free.dev";
 
 async function loadComparison() {
   let trainedCycles = [], historyCycles = [];
@@ -1689,8 +1650,6 @@ document.addEventListener('click', () => {
   if (m) m.style.display = 'none';
 });
 
-const NGROK_URL = "https://dropbox-overprice-amiable.ngrok-free.dev";
-
 async function confirmResetCycle() {
   document.getElementById('cycle-menu').style.display = 'none';
   if (!confirm('Reset to Cycle 1? All current daily data will be cleared!')) return;
@@ -1703,20 +1662,6 @@ async function confirmResetCycle() {
     loadCycle();
   } catch(e) { toast('Server error', 'err'); }
 }
-
-// ── ROUTE ALL API CALLS THROUGH NGROK ──
-const API_BASE = "https://dropbox-overprice-amiable.ngrok-free.dev";
-const _origFetch = window.fetch.bind(window);
-window.fetch = function(url, opts = {}) {
-  if (typeof url === 'string' && url.startsWith('/api')) {
-    url = API_BASE + url;
-    opts.headers = {
-      ...(opts.headers || {}),
-      'ngrok-skip-browser-warning': 'true'
-    };
-  }
-  return _origFetch(url, opts);
-};
 
 // ══════════════════════════════════════════════════════
 //  BOOT
@@ -1731,63 +1676,4 @@ function _boot() {
 
 <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js" onload="_boot()"></script>
 </body>
-
-<script>
-const NGROK_URL = "https://dropbox-overprice-amiable.ngrok-free.dev";
-
-// 1. UPDATE MO LAHAT NG FETCH CALLS MO GAYA NITO:
-async function loadCycle() {
-    try {
-        // Imbes na '/api/cycle', ginawa nating full link
-        const response = await fetch(`${NGROK_URL}/api/cycle`);
-        if (!response.ok) throw new Error('Network response was not ok');
-        const data = await response.json();
-        
-        // Dito mo ilalagay yung code mo para i-display yung 4g eggs at current day
-        document.getElementById('current-day').value = data.current_day;
-        updateCycleHighlight(data.current_day);
-        console.log("Cycle data loaded:", data);
-    } catch (error) {
-        console.error("loadCycle error:", error);
-    }
-}
-
-// 2. UPDATE MO RIN ANG SENSORS (BH1750, Temp, Hum)
-const NGROK_URL = "https://dropbox-overprice-amiable.ngrok-free.dev";
-
-async function loadRealtimeData() {
-    try {
-        const res = await fetch(`${NGROK_URL}/api/sensors`);
-        if (!res.ok) throw new Error("Pi offline");
-        const data = await res.json();
-        
-        // Pag-update sa UI (Ito yung mga IDs sa HTML mo)
-        document.getElementById('l-temp').innerText = data.temp;
-        document.getElementById('l-hum').innerText = data.hum;
-        document.getElementById('p-temp').innerText = data.lux; // O kung ano mang ID yan
-        
-        document.getElementById('conn-label').innerText = "Connected to Cage";
-        document.getElementById('led').classList.add('on');
-    } catch (err) {
-        document.getElementById('conn-label').innerText = "Disconnected";
-        document.getElementById('led').classList.remove('on');
-        console.error("Sensor fetch error:", err);
-    }
-}
-// 3. FIX SA LOGOUT BUTTON PARA HINDI MAG-404
-document.getElementById('btn-logout').addEventListener('click', function(e) {
-    e.preventDefault(); // Pigilan yung default 404 behavior
-    
-    // Tawagan ang logout sa Raspberry Pi
-    fetch(`${NGROK_URL}/logout`).then(() => {
-        // Pagkatapos mag-logout sa Pi, bumalik sa Login page ng Vercel
-        window.location.href = "https://bsfnexus.vercel.app/";
-    });
-});
-
-// Patakbuhin ang auto-refresh tuwing 3 seconds
-setInterval(loadRealtimeData, 3000);
-loadCycle();
-</script>
-
 </html>
