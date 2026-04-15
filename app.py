@@ -6,7 +6,6 @@ Each model predicts separately, best one highlighted
 
 from flask import Flask, render_template, jsonify, request, redirect, url_for, session
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user
-from flask_cors import CORS
 import serial, serial.tools.list_ports
 import threading, time, json, os, pickle
 import numpy as np
@@ -14,18 +13,8 @@ import hashlib
 from datetime import datetime
 
 app = Flask(__name__)
-CORS(app, resources={r"/api/*": {"origins": "*"}})
 app.secret_key = "bsf_monitor_secret_2024"
 
-@app.route('/api/sensors')
-def get_sensors():
-    # Siguraduhin na ang response ay JSON
-    data = {
-        "temp": 28.5, 
-        "hum": 70, 
-        "lux": 500
-    }
-    return jsonify(data)
 
 # ── LOGIN SETUP ──────────────────────────────────────────────
 login_manager = LoginManager()
@@ -157,7 +146,6 @@ def stageFromDay(day):
     else:           return "adult"
 
 def growth_sigmoid(day):
-    """Return sigmoid growth factor for a given day (0.0 -> 1.0)."""
     day = int(day)
     if day < 5:
         return 0.02
@@ -168,7 +156,6 @@ def growth_sigmoid(day):
         return 1.0
 
 def predict_single(bundle, col_values, all_days=None, current_day=None):
-    """Run prediction on one model bundle. Returns (pred_g, method)."""
     if bundle is None:
         return None, "no_model"
 
@@ -193,7 +180,6 @@ def predict_single(bundle, col_values, all_days=None, current_day=None):
             if rf is None:
                 return None, "no_rf"
             pred_g = float(rf.predict(row_sc)[0])
-            # RF also scales by growth curve so it's comparable
             if current_day is not None:
                 pred_g = pred_g * growth_sigmoid(current_day)
             return round(max(0.0, pred_g), 1), "rf"
@@ -224,7 +210,7 @@ def predict_single(bundle, col_values, all_days=None, current_day=None):
                 while len(seq_rows) < SEQUENCE_HOURS:
                     seq_rows.insert(0, seq_rows[0])
                 seq_rows = seq_rows[-SEQUENCE_HOURS:]
-                seq_arr  = np.array(seq_rows, dtype=float)
+                seq_arr   = np.array(seq_rows, dtype=float)
                 seq_sc   = scaler_X.transform(seq_arr)
                 seq_in   = seq_sc.reshape(1, SEQUENCE_HOURS, len(feature_cols))
             else:
@@ -247,7 +233,6 @@ def predict_single(bundle, col_values, all_days=None, current_day=None):
 
 
 def predict_all_models(col_values, all_days=None, current_day=None):
-    """Run all 3 models and return dict with individual + best."""
     results = {}
     for name, bundle in model_bundles.items():
         pred_g, method = predict_single(bundle, col_values,
@@ -284,7 +269,6 @@ def predict_all_models(col_values, all_days=None, current_day=None):
 
 
 def build_col_values_from_weeks(weeks):
-    """Aggregate entry data into col_values dict for prediction."""
     stage_data = {}
     for w in weeks:
         s = w["stage"]
@@ -306,7 +290,7 @@ def build_col_values_from_weeks(weeks):
     ph = avg(stage_data.get("pupa",   {}).get("hums",  []))
     at = avg(stage_data.get("adult",  {}).get("temps", []))
     ah = avg(stage_data.get("adult",  {}).get("hums",  []))
-    lx = avg(stage_data.get("adult",  {}).get("lux",   []))
+    lx = avg(stage_data.get("adult",  {}).get("lux",    []))
 
     if lt is not None: col_values["larvae_temp"] = lt
     if lh is not None: col_values["larvae_hum"]  = lh
@@ -325,17 +309,13 @@ def predict_from_weeks(weeks, current_day=None):
 
 
 def recompute_all_day_predictions(cycle):
-    """
-    Re-run predictions for every day entry using that day's
-    cumulative data + growth sigmoid so chart shows spikes.
-    """
     all_day_entries = sorted(
         cycle.get("days", []),
         key=lambda x: x.get("day", 0)
     )
     for i, entry in enumerate(all_day_entries):
         d              = entry.get("day", 1)
-        entries_so_far = all_day_entries[:i + 1]  # cumulative up to this day
+        entries_so_far = all_day_entries[:i + 1]
         day_preds      = predict_all_models(
             build_col_values_from_weeks(entries_so_far),
             all_days=entries_so_far,
@@ -383,7 +363,7 @@ def serial_thread():
                     raw = ser.readline().decode("utf-8", errors="ignore")
                     if raw.strip(): parse_line(raw)
             except Exception as e:
-                if 'ser' in locals(): ser.close() # Close if it was opened
+                if 'ser' in locals(): ser.close()
                 serial_status.update({"connected": False, "port": None, "error": str(e)})
         else:
             serial_status.update({"connected": False, "port": None, "error": "No Arduino found"})
@@ -411,8 +391,6 @@ def api_model_info():
 def api_cycle_get():
     cid   = str(cycle_data["current_cycle"])
     cycle = cycle_data["cycles"].get(cid, new_cycle(int(cid)))
-
-    # ── Re-compute every day's prediction fresh on each page load ──
     cycle = recompute_all_day_predictions(cycle)
 
     all_entries = cycle.get("days", []) + cycle.get("weeks", [])
@@ -445,19 +423,15 @@ def api_cycle_get():
 @app.route("/api/cycle/week", methods=["POST"])
 def api_cycle_week_post():
     b = request.json or {}
-
     def sf(k):
         v = b.get(k)
         try:   return float(v) if v not in (None, "", "null") else None
         except: return None
 
     week = b.get("week")
-    if week is None:
-        return jsonify({"error": "week is required"}), 400
-    try:
-        week = int(week)
-    except:
-        return jsonify({"error": "week must be a number"}), 400
+    if week is None: return jsonify({"error": "week is required"}), 400
+    try: week = int(week)
+    except: return jsonify({"error": "week must be a number"}), 400
 
     avg_temp = sf("avg_temp")
     avg_hum  = sf("avg_humidity")
@@ -466,19 +440,14 @@ def api_cycle_week_post():
 
     cid   = str(cycle_data["current_cycle"])
     cycle = cycle_data["cycles"].setdefault(cid, new_cycle(cycle_data["current_cycle"]))
-
-    if cycle["finished"]:
-        return jsonify({"error": "Current cycle is already finished. Start a new cycle."}), 400
+    if cycle["finished"]: return jsonify({"error": "Finished. Start a new cycle."}), 400
 
     stage = stage_from_week(week)
     entry = {
-        "week":          week,
-        "stage":         stage,
-        "avg_temp":      avg_temp,
-        "avg_humidity":  avg_hum,
-        "feed_g":        sf("feed_g"),
+        "week": week, "stage": stage, "avg_temp": avg_temp,
+        "avg_humidity": avg_hum, "feed_g": sf("feed_g"),
         "avg_light_lux": sf("avg_light_lux"),
-        "recorded_at":   datetime.now().isoformat(),
+        "recorded_at": datetime.now().isoformat(),
     }
 
     updated = False
@@ -494,72 +463,49 @@ def api_cycle_week_post():
     all_preds  = predict_from_weeks(cycle["weeks"])
     best_name  = all_preds.get("best_model", "LSTM")
     best_pred  = all_preds.get(best_name, {})
-    pred_g     = best_pred.get("predicted_g")
-    method     = best_pred.get("method")
-    confidence = get_confidence(cycle["weeks"])
-
+    
     idx = next(i for i, w in enumerate(cycle["weeks"]) if w["week"] == week)
-    cycle["weeks"][idx]["predicted_g"]     = pred_g
-    cycle["weeks"][idx]["confidence"]      = confidence
-    cycle["weeks"][idx]["method"]          = method
-    cycle["weeks"][idx]["best_model"]      = best_name
-    cycle["weeks"][idx]["all_predictions"] = {
-        k: v for k, v in all_preds.items() if k != "best_model"
-    }
-
-    save_cycle_data()
-    return jsonify({
-        "status": "updated" if updated else "added",
-        "week": week, "stage": stage,
-        "predicted_g": pred_g, "confidence": confidence,
-        "method": method, "best_model": best_name,
-        "all_predictions": {k: v for k, v in all_preds.items() if k != "best_model"},
-        "all_weeks": cycle["weeks"],
+    cycle["weeks"][idx].update({
+        "predicted_g": best_pred.get("predicted_g"),
+        "confidence": get_confidence(cycle["weeks"]),
+        "method": best_pred.get("method"),
+        "best_model": best_name,
+        "all_predictions": {k: v for k, v in all_preds.items() if k != "best_model"}
     })
 
+    save_cycle_data()
+    return jsonify({"status": "updated" if updated else "added", "week": week})
 
 @app.route("/api/cycle/day", methods=["POST"])
 def api_cycle_day_post():
     b = request.json or {}
-
     def sf(k):
         v = b.get(k)
         try:   return float(v) if v not in (None, "", "null") else None
         except: return None
 
     day = b.get("day")
-    if day is None:
-        return jsonify({"error": "day is required"}), 400
-    try:
-        day = int(day)
-    except:
-        return jsonify({"error": "day must be a number"}), 400
+    if day is None: return jsonify({"error": "day is required"}), 400
+    try: day = int(day)
+    except: return jsonify({"error": "day must be a number"}), 400
 
-    avg_temp = sf("avg_temp")
-    avg_hum  = sf("avg_humidity")
+    avg_temp, avg_hum = sf("avg_temp"), sf("avg_humidity")
     if avg_temp is None or avg_hum is None:
         return jsonify({"error": "avg_temp and avg_humidity are required"}), 400
 
     cid   = str(cycle_data["current_cycle"])
     cycle = cycle_data["cycles"].setdefault(cid, new_cycle(cycle_data["current_cycle"]))
-
-    if cycle["finished"]:
-        return jsonify({"error": "Current cycle is already finished."}), 400
+    if cycle["finished"]: return jsonify({"error": "Current cycle is finished."}), 400
 
     stage = stageFromDay(day)
     entry = {
-        "day":           day,
-        "stage":         stage,
-        "avg_temp":      avg_temp,
-        "avg_humidity":  avg_hum,
-        "feed_g":        sf("feed_g"),
+        "day": day, "stage": stage, "avg_temp": avg_temp,
+        "avg_humidity": avg_hum, "feed_g": sf("feed_g"),
         "avg_light_lux": sf("avg_light_lux"),
-        "recorded_at":   datetime.now().isoformat(),
+        "recorded_at": datetime.now().isoformat(),
     }
 
-    if "days" not in cycle:
-        cycle["days"] = []
-
+    if "days" not in cycle: cycle["days"] = []
     updated = False
     for i, d in enumerate(cycle["days"]):
         if d["day"] == day:
@@ -570,148 +516,67 @@ def api_cycle_day_post():
         cycle["days"].append(entry)
         cycle["days"].sort(key=lambda x: x["day"])
 
-    # ── Re-compute ALL days so every point on chart updates ──
     cycle = recompute_all_day_predictions(cycle)
-
-    # Pull this day's fresh prediction for the response
-    idx       = next(i for i, d in enumerate(cycle["days"]) if d["day"] == day)
-    pred_g    = cycle["days"][idx].get("predicted_g")
-    best_name = cycle["days"][idx].get("best_model", "LSTM")
-    all_preds = cycle["days"][idx].get("all_predictions", {})
-    confidence = get_confidence(cycle["days"] + cycle.get("weeks", []))
-    cycle["days"][idx]["confidence"] = confidence
-
     save_cycle_data()
-    return jsonify({
-        "status": "updated" if updated else "added",
-        "day": day, "stage": stage,
-        "predicted_g": pred_g,
-        "confidence":  confidence,
-        "method":      cycle["days"][idx].get("method"),
-        "best_model":  best_name,
-        "all_predictions": all_preds,
-        "all_days": cycle["days"],
-    })
-
+    return jsonify({"status": "updated" if updated else "added", "day": day})
 
 @app.route("/api/cycle/day/<int:day>", methods=["DELETE"])
 def api_cycle_day_delete(day):
     cid   = str(cycle_data["current_cycle"])
     cycle = cycle_data["cycles"].get(cid)
-    if not cycle:
-        return jsonify({"error": "No active cycle"}), 404
-    if "days" not in cycle:
-        return jsonify({"error": f"Day {day} not found"}), 404
-    before = len(cycle["days"])
+    if not cycle or "days" not in cycle: return jsonify({"error": "Not found"}), 404
     cycle["days"] = [d for d in cycle["days"] if d["day"] != day]
-    if len(cycle["days"]) == before:
-        return jsonify({"error": f"Day {day} not found"}), 404
     save_cycle_data()
     return jsonify({"status": "deleted", "day": day})
-
-@app.route("/api/cycle/week/<int:week>", methods=["DELETE"])
-def api_cycle_week_delete(week):
-    cid   = str(cycle_data["current_cycle"])
-    cycle = cycle_data["cycles"].get(cid)
-    if not cycle:
-        return jsonify({"error": "No active cycle"}), 404
-    before = len(cycle["weeks"])
-    cycle["weeks"] = [w for w in cycle["weeks"] if w["week"] != week]
-    if len(cycle["weeks"]) == before:
-        return jsonify({"error": f"Week {week} not found"}), 404
-    save_cycle_data()
-    return jsonify({"status": "deleted", "week": week})
-
-@app.route("/api/cycles/<int:cycle_id>", methods=["DELETE"])
-def api_cycle_delete(cycle_id):
-    cid = str(cycle_id)
-    if cid not in cycle_data["cycles"]:
-        return jsonify({"error": f"Cycle {cycle_id} not found"}), 404
-    if str(cycle_data["current_cycle"]) == cid:
-        return jsonify({"error": "Cannot delete the current active cycle"}), 400
-    del cycle_data["cycles"][cid]
-    save_cycle_data()
-    return jsonify({"status": "deleted", "cycle_id": cycle_id})
 
 @app.route("/api/cycle/finish", methods=["POST"])
 def api_cycle_finish():
     b = request.json or {}
-    try:
-        actual_g = float(b["actual_yield_g"])
-    except (KeyError, ValueError, TypeError):
-        return jsonify({"error": "actual_yield_g is required"}), 400
+    try: actual_g = float(b["actual_yield_g"])
+    except: return jsonify({"error": "actual_yield_g is required"}), 400
 
     cid   = str(cycle_data["current_cycle"])
     cycle = cycle_data["cycles"].get(cid)
-    if not cycle:
-        return jsonify({"error": "No active cycle"}), 404
+    if not cycle: return jsonify({"error": "No active cycle"}), 404
 
-    pred_g = confidence = method = best_name = None
-    all_preds   = {}
     all_entries = cycle.get("days", []) + cycle.get("weeks", [])
+    pred_g = 0
     if all_entries:
-        max_day   = max((w.get("day", w.get("week", 1)) for w in all_entries), default=1)
-        all_preds = predict_all_models(
-            build_col_values_from_weeks(all_entries),
-            all_days=all_entries,
-            current_day=max_day
-        )
-        best_name  = all_preds.get("best_model", "LSTM")
-        best_pred  = all_preds.get(best_name, {})
-        pred_g     = best_pred.get("predicted_g")
-        method     = best_pred.get("method")
-        confidence = get_confidence(all_entries)
+        max_day = max((w.get("day", w.get("week", 1)) for w in all_entries), default=1)
+        all_preds = predict_all_models(build_col_values_from_weeks(all_entries), all_days=all_entries, current_day=max_day)
+        best_name = all_preds.get("best_model", "LSTM")
+        best_pred = all_preds.get(best_name, {})
+        pred_g = best_pred.get("predicted_g", 0)
 
-    cycle["finished"]        = True
-    cycle["actual_yield_g"]  = actual_g
-    cycle["finished_at"]     = datetime.now().isoformat()
-    cycle["final_prediction"] = {
-        "predicted_g":     pred_g,
-        "confidence":      confidence,
-        "method":          method,
-        "best_model":      best_name,
-        "all_predictions": {k: v for k, v in all_preds.items() if k != "best_model"},
-        "error_g":   round(abs(actual_g - pred_g), 1) if pred_g else None,
-        "error_pct": round(abs(actual_g - pred_g) / actual_g * 100, 1) if pred_g and actual_g else None,
-    }
+        cycle["finished"] = True
+        cycle["actual_yield_g"] = actual_g
+        cycle["finished_at"] = datetime.now().isoformat()
+        cycle["final_prediction"] = {
+            "predicted_g": pred_g,
+            "confidence": get_confidence(all_entries),
+            "best_model": best_name,
+            "error_g": round(abs(actual_g - pred_g), 1),
+            "error_pct": round(abs(actual_g - pred_g) / actual_g * 100, 1) if actual_g else 0,
+        }
 
     new_id = cycle_data["current_cycle"] + 1
     cycle_data["current_cycle"] = new_id
     cycle_data["cycles"][str(new_id)] = new_cycle(new_id)
     save_cycle_data()
+    return jsonify({"status": "cycle_finished", "new_cycle_id": new_id})
 
-    return jsonify({
-        "status":         "cycle_finished",
-        "finished_cycle": cycle,
-        "new_cycle_id":   new_id,
-        "error_g":        cycle["final_prediction"]["error_g"],
-        "error_pct":      cycle["final_prediction"]["error_pct"],
-    })
-
-@app.route("/api/cycles/history", methods=["GET"])
+@app.route("/api/cycles/history")
 def api_cycles_history():
     finished = [c for c in cycle_data["cycles"].values() if c.get("finished")]
     finished.sort(key=lambda x: x["cycle_id"])
     return jsonify(finished)
-
-@app.route("/api/cycles/all", methods=["GET"])
-def api_cycles_all():
-    return jsonify(cycle_data)
-
-@app.route("/api/cycle_results")
-def api_cycle_results():
-    results_path = os.path.join(BASE, "data", "cycle_results.json")
-    if os.path.exists(results_path):
-        with open(results_path) as f:
-            return jsonify(json.load(f))
-    return jsonify({})
 
 @app.route("/api/cycle/restart", methods=["POST"])
 def api_cycle_restart():
     global cycle_data
     cycle_data = {"current_cycle": 1, "cycles": {"1": new_cycle(1)}}
     save_cycle_data()
-    return jsonify({"status": "reset", "current_cycle": 1})
+    return jsonify({"status": "reset"})
 
 # ── LOGIN / LOGOUT ────────────────────────────────────────────
 @app.route("/login", methods=["GET", "POST"])
@@ -724,15 +589,15 @@ def login():
         if username in USERS and USERS[username] == hashed:
             login_user(User(username))
             return redirect(url_for("index"))
-        else:
-            error = "Invalid username or password."
+        error = "Invalid username or password."
     return render_template("login.html", error=error)
 
 @app.route("/logout")
 @login_required
 def logout():
     logout_user()
-    return redirect("https://bsfnexus.vercel.app/")
+    return redirect(url_for("login"))
 
 if __name__ == "__main__":
+    # Naka-bind sa 0.0.0.0 para ma-access mo sa phone mo via Local IP
     app.run(debug=True, host="0.0.0.0", port=5000)
